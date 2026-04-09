@@ -1,0 +1,11 @@
+@use "../abstracts" as *;
+
+.panel-card {
+  @include glass-panel;
+  padding: 22px;
+}
+
+.panel-card__header {
+  @include flex-between(flex-start);
+  margin-bottom: 18px;
+}

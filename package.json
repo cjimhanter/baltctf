@@ -1,0 +1,26 @@
+{
+  "name": "baltctf",
+  "version": "1.0.0",
+  "description": "Attack/Defense CTF platform graduation project.",
+  "private": true,
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "up": "docker compose up --build",
+    "down": "docker compose down",
+    "backend:migrate": "docker compose run --rm backend python manage.py migrate",
+    "backend:makemigrations": "docker compose run --rm backend python manage.py makemigrations",
+    "backend:createsuperuser": "docker compose run --rm backend python manage.py createsuperuser"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjimhanter/baltctf.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cjimhanter/baltctf/issues"
+  },
+  "homepage": "https://github.com/cjimhanter/baltctf#readme"
+}

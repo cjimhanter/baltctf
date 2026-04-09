@@ -1,0 +1,111 @@
+@use "../abstracts" as *;
+
+.app-shell {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: $radius-panel;
+  background:
+    radial-gradient(circle at top left, rgba(244, 182, 95, 0.18), transparent 42%),
+    linear-gradient(135deg, rgba(13, 35, 53, 0.92), rgba(8, 20, 33, 0.96));
+  box-shadow: var(--shadow);
+}
+
+.app-shell__top {
+  @include flex-between;
+  gap: 16px;
+}
+
+.app-shell__brand,
+.app-shell__session {
+  display: grid;
+  gap: 6px;
+}
+
+.app-shell__controls,
+.app-shell__language {
+  display: grid;
+  gap: 10px;
+}
+
+.app-shell__eyebrow,
+.app-shell__session span {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.app-shell__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+}
+
+.app-shell__session {
+  justify-items: end;
+  text-align: right;
+
+  strong {
+    font-size: 1rem;
+  }
+}
+
+.app-shell__controls {
+  justify-items: end;
+}
+
+.app-shell__language {
+  justify-items: end;
+}
+
+.app-shell__language-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.app-shell__language-switch {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-pill;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.app-shell__language-button {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: 160ms ease;
+
+  &--active {
+    background: rgba(244, 182, 95, 0.18);
+    color: var(--text-main);
+  }
+}
+
+.app-shell__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-shell__link {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-pill;
+  color: var(--text-soft);
+  text-decoration: none;
+  transition: 160ms ease;
+
+  &:hover,
+  &.router-link-active {
+    border-color: rgba(244, 182, 95, 0.35);
+    background: rgba(244, 182, 95, 0.12);
+    color: var(--text-main);
+  }
+}

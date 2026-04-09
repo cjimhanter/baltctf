@@ -1,0 +1,95 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-baltctf}
+      POSTGRES_USER: ${POSTGRES_USER:-baltctf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-baltctf}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-baltctf} -d ${POSTGRES_DB:-baltctf}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-baltctf}
+      POSTGRES_USER: ${POSTGRES_USER:-baltctf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-baltctf}
+      POSTGRES_HOST: ${POSTGRES_HOST:-db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      DJANGO_CORS_ALLOW_ORIGINS: ${DJANGO_CORS_ALLOW_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      ATLAS_BOARD_BASE_URL: ${ATLAS_BOARD_BASE_URL:-http://vulnbox-web:8080}
+      SIGNAL_API_BASE_URL: ${SIGNAL_API_BASE_URL:-http://vulnbox-api:8080}
+      COLD_STORAGE_BASE_URL: ${COLD_STORAGE_BASE_URL:-http://vulnbox-storage:8080}
+      CHECKER_SERVICE_REQUEST_TIMEOUT_SECONDS: ${CHECKER_SERVICE_REQUEST_TIMEOUT_SECONDS:-5}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      vulnbox-web:
+        condition: service_started
+      vulnbox-api:
+        condition: service_started
+      vulnbox-storage:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  checker:
+    build:
+      context: ./checker
+    environment:
+      CHECKER_API_BASE_URL: ${CHECKER_API_BASE_URL:-http://backend:8000/api}
+      CHECKER_ADMIN_USERNAME: ${CHECKER_ADMIN_USERNAME:-admin}
+      CHECKER_ADMIN_PASSWORD: ${CHECKER_ADMIN_PASSWORD:-BaltCTFadmin123!}
+      CHECKER_INTERVAL_SECONDS: ${CHECKER_INTERVAL_SECONDS:-60}
+      CHECKER_REQUEST_TIMEOUT_SECONDS: ${CHECKER_REQUEST_TIMEOUT_SECONDS:-10}
+    volumes:
+      - ./checker:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  vulnbox-web:
+    build:
+      context: ./vulnbox/web-service
+    ports:
+      - "8081:8080"
+
+  vulnbox-api:
+    build:
+      context: ./vulnbox/api-service
+    ports:
+      - "8082:8080"
+
+  vulnbox-storage:
+    build:
+      context: ./vulnbox/storage-service
+    ports:
+      - "8083:8080"

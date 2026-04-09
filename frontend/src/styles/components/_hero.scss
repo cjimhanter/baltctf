@@ -1,0 +1,27 @@
+@use "../abstracts" as *;
+
+.hero {
+  @include glass-panel;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+  gap: 18px;
+  padding: 30px;
+}
+
+.hero__card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+  border-radius: $radius-hero-card;
+  background:
+    radial-gradient(circle at top right, rgba(244, 182, 95, 0.18), transparent 42%),
+    var(--bg-surface-strong);
+  border: 1px solid var(--line);
+}
+
+.hero__meta {
+  font-size: 1.3rem;
+  line-height: 1.35;
+}

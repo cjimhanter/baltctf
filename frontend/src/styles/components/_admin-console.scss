@@ -1,0 +1,91 @@
+@use "../abstracts" as *;
+
+.admin-console {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-console__panel {
+  &--wide {
+    grid-column: span 2;
+  }
+}
+
+.admin-console__list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.admin-console__entity,
+.admin-console__checker,
+.admin-console__checker-card {
+  @include soft-surface($radius-item);
+}
+
+.admin-console__entity {
+  @include flex-between;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.admin-console__entity-main {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-console__entity-meta,
+.admin-console__entity-copy,
+.admin-console__checker-meta,
+.admin-console__checker-label {
+  color: var(--text-muted);
+}
+
+.admin-console__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-console__checker {
+  @include flex-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.admin-console__checker-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-console__checker-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-console__checker-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+
+  @each $state, $border in $checker-card-states {
+    &[data-state="#{$state}"] {
+      border-color: $border;
+    }
+  }
+}
+
+.admin-console__checker-value {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.admin-console__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

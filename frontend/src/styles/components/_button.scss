@@ -1,0 +1,54 @@
+@use "../abstracts" as *;
+
+.button {
+  @include action-control;
+  border: 0;
+  background: linear-gradient(135deg, #f0a54a, #ffd88f);
+  color: #122026;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  &--ghost {
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-main);
+  }
+
+  &--danger {
+    border-color: rgba(255, 122, 107, 0.3);
+    color: #ffc4bc;
+  }
+
+  &--secondary {
+    border: 1px solid rgba(244, 182, 95, 0.22);
+    background: rgba(244, 182, 95, 0.1);
+    color: var(--accent-strong);
+  }
+}
+
+.tag {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &[data-state="accepted"] {
+    border-color: rgba(105, 213, 155, 0.35);
+    color: var(--good);
+  }
+
+  &[data-state="rejected"] {
+    border-color: rgba(255, 122, 107, 0.3);
+    color: #ffb2aa;
+  }
+
+  &--neutral {
+    color: var(--text-soft);
+    border-color: $line-subtle;
+  }
+}

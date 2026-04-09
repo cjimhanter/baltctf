@@ -1,0 +1,61 @@
+@use "../abstracts" as *;
+
+.guest-access {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.guest-access__panel {
+  &--reservation {
+    grid-column: span 3;
+  }
+
+  &--register {
+    grid-column: span 1;
+  }
+}
+
+.guest-access__status-note {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(244, 182, 95, 0.2);
+  border-radius: $radius-pill;
+  background: rgba(244, 182, 95, 0.06);
+
+  p {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+}
+
+.guest-access__subsection {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.guest-access__subsection-head {
+  @include flex-between;
+}
+
+.guest-access__subsection-title {
+  margin: 0;
+  font-size: 0.94rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.guest-access__participant {
+  @include soft-surface($radius-item);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.guest-access__participant-head {
+  @include flex-between;
+}

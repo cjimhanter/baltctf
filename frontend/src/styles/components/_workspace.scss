@@ -1,0 +1,120 @@
+@use "../abstracts" as *;
+
+.workspace {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.workspace__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.workspace__summary-card,
+.workspace__member,
+.workspace__tool-card,
+.workspace__activity-item {
+  @include soft-surface($radius-item);
+}
+
+.workspace__summary-card,
+.workspace__tool-card {
+  padding: 16px;
+}
+
+.workspace__summary-label,
+.workspace__member-meta,
+.workspace__activity-meta {
+  color: var(--text-muted);
+}
+
+.workspace__summary-value {
+  display: block;
+  margin: 8px 0;
+}
+
+.workspace__summary-note,
+.workspace__activity-copy {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.workspace__section {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.workspace__section-head {
+  @include flex-between;
+
+  &--compact {
+    margin-bottom: 0;
+  }
+}
+
+.workspace__section-title {
+  margin: 0;
+  font-size: 0.94rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.workspace__roster,
+.workspace__activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.workspace__member {
+  @include flex-between;
+  padding: 14px 16px;
+}
+
+.workspace__member-main {
+  display: grid;
+  gap: 4px;
+}
+
+.workspace__member-side {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.workspace__member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.workspace__tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workspace__tool-card {
+  display: grid;
+  gap: 14px;
+}
+
+.workspace__activity-item {
+  padding: 16px;
+}
+
+.workspace__activity-topline,
+.workspace__activity-meta {
+  @include flex-between;
+}
+
+.workspace__activity-topline {
+  margin-bottom: 10px;
+}

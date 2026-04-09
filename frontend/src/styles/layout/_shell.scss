@@ -1,0 +1,13 @@
+#app,
+.page {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.page {
+  padding: 36px 0 72px;
+}

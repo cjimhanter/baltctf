@@ -1,0 +1,29 @@
+$service-pill-states: (
+  "up": (
+    border: rgba(105, 213, 155, 0.35),
+    background: rgba(105, 213, 155, 0.08),
+  ),
+  "mumble": (
+    border: rgba(244, 182, 95, 0.35),
+    background: rgba(244, 182, 95, 0.08),
+  ),
+  "corrupt": (
+    border: rgba(255, 122, 107, 0.28),
+    background: rgba(255, 122, 107, 0.08),
+  ),
+  "down": (
+    border: rgba(255, 122, 107, 0.38),
+    background: rgba(255, 122, 107, 0.1),
+  ),
+  "unknown": (
+    border: rgba(138, 163, 176, 0.32),
+    background: rgba(138, 163, 176, 0.08),
+  ),
+);
+
+$checker-card-states: (
+  "up": rgba(105, 213, 155, 0.28),
+  "mumble": rgba(244, 182, 95, 0.28),
+  "corrupt": rgba(255, 122, 107, 0.24),
+  "down": rgba(255, 122, 107, 0.24),
+);

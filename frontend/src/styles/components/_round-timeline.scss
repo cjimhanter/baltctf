@@ -1,0 +1,46 @@
+@use "../abstracts" as *;
+
+.round-timeline {
+  margin-top: 16px;
+}
+
+.round-timeline__track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.round-timeline__card {
+  @include soft-surface($radius-card);
+  min-width: 180px;
+  padding: 14px 16px;
+
+  &[data-state="planned"] {
+    border-color: rgba(244, 182, 95, 0.35);
+    background: rgba(244, 182, 95, 0.08);
+  }
+
+  &[data-state="running"] {
+    border-color: rgba(105, 213, 155, 0.35);
+    color: var(--good);
+  }
+
+  &[data-state="finished"] {
+    border-color: rgba(255, 122, 107, 0.3);
+    color: #ffb2aa;
+  }
+}
+
+.round-timeline__label,
+.round-timeline__state,
+.round-timeline__time {
+  display: block;
+}
+
+.round-timeline__time {
+  color: var(--text-muted);
+}
+
+.round-timeline__state {
+  margin: 6px 0;
+}

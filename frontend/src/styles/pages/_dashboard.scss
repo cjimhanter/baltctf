@@ -1,0 +1,92 @@
+@use "../abstracts" as *;
+
+@media (max-width: $bp-tablet) {
+  .hero,
+  .metrics,
+  .guest-access,
+  .workspace,
+  .admin-console,
+  .workspace__tools,
+  .admin-console__checker-summary,
+  .board__grid,
+  .board__sidebar,
+  .field-grid,
+  .workspace__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-access__panel--reservation,
+  .admin-console__panel--wide,
+  .field--full {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .page {
+    width: min(100%, calc(100% - 20px));
+    padding-top: 20px;
+    padding-bottom: 40px;
+  }
+
+  .hero,
+  .panel-card,
+  .metrics__card,
+  .app-shell {
+    border-radius: $radius-panel-mobile;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .hero__title {
+    font-size: clamp(2.2rem, 12vw, 3.4rem);
+  }
+
+  .panel-card__header,
+  .app-shell__top,
+  .route-page__header,
+  .guest-access__subsection-head,
+  .guest-access__participant-head,
+  .workspace__section-head,
+  .workspace__member,
+  .workspace__activity-topline,
+  .workspace__activity-meta,
+  .admin-console__checker,
+  .admin-console__entity,
+  .admin-console__actions,
+  .board__status-head,
+  .board__feed-topline,
+  .board__feed-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .route-page__meta,
+  .app-shell__controls,
+  .app-shell__language,
+  .app-shell__session {
+    text-align: left;
+    justify-items: start;
+  }
+
+  .workspace__member-side {
+    justify-items: start;
+  }
+
+  .workspace__member-actions,
+  .admin-console__actions {
+    justify-content: flex-start;
+  }
+
+  .board__table {
+    th,
+    td {
+      &:nth-child(3),
+      &:nth-child(4) {
+        display: none;
+      }
+    }
+  }
+}

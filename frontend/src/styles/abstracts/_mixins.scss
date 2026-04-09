@@ -1,0 +1,35 @@
+@use "./variables" as *;
+
+@mixin glass-panel($radius: $radius-panel) {
+  border: 1px solid var(--line);
+  border-radius: $radius;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    var(--bg-surface);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+@mixin soft-surface($radius: $radius-item) {
+  border: 1px solid var(--line);
+  border-radius: $radius;
+  background: $surface-card;
+}
+
+@mixin action-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@mixin flex-between($align: center, $gap: 12px) {
+  display: flex;
+  justify-content: space-between;
+  gap: $gap;
+  align-items: $align;
+}

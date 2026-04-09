@@ -1,0 +1,74 @@
+@use "../abstracts" as *;
+
+.form-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  &--checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: $surface-input;
+
+    input {
+      margin: 0;
+      accent-color: var(--accent-strong);
+    }
+
+    .field__label {
+      color: var(--text-main);
+    }
+  }
+}
+
+.field__label {
+  color: var(--text-muted);
+}
+
+.field__control {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: $surface-input;
+  color: var(--text-main);
+
+  &:focus {
+    outline: 1px solid rgba(244, 182, 95, 0.45);
+    border-color: rgba(244, 182, 95, 0.45);
+  }
+}
+
+textarea.field__control {
+  min-height: 120px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  resize: vertical;
+}
+
+.empty-hint {
+  padding: 14px 16px;
+  border: 1px dashed $line-subtle;
+  border-radius: $radius-pill;
+  color: var(--text-soft);
+  line-height: 1.5;
+}

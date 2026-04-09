@@ -1,0 +1,76 @@
+@use "sass:map";
+@use "../abstracts" as *;
+
+.status-matrix {
+  margin-top: 18px;
+}
+
+.status-matrix__table-wrap {
+  overflow-x: auto;
+}
+
+.status-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+}
+
+.status-matrix__team-cell {
+  min-width: 180px;
+
+  strong,
+  span {
+    display: block;
+  }
+
+  span {
+    margin-top: 4px;
+    color: var(--text-muted);
+  }
+}
+
+.status-matrix__cell {
+  min-width: 180px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: $radius-item;
+  background: rgba(255, 255, 255, 0.02);
+
+  strong,
+  small,
+  p {
+    display: block;
+  }
+
+  small {
+    margin: 6px 0;
+    color: var(--text-muted);
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  @each $state, $theme in $service-pill-states {
+    &[data-state="#{$state}"] {
+      border-color: map.get($theme, border);
+      background: map.get($theme, background);
+    }
+  }
+}

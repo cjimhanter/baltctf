@@ -1,0 +1,147 @@
+@use "sass:map";
+@use "../abstracts" as *;
+
+.board {
+  margin-top: 18px;
+}
+
+.board__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.95fr);
+  gap: 16px;
+}
+
+.board__sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+.board__leader {
+  min-width: 124px;
+  padding: 14px 16px;
+  border: 1px solid rgba(244, 182, 95, 0.25);
+  border-radius: $radius-item;
+  background: rgba(244, 182, 95, 0.08);
+}
+
+.board__leader-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.board__table-wrap {
+  overflow-x: auto;
+}
+
+.board__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  th {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.board__team-cell {
+  display: grid;
+  gap: 4px;
+
+  span {
+    color: var(--text-muted);
+  }
+}
+
+.board__total {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.board__status-list,
+.board__feed {
+  display: grid;
+  gap: 12px;
+}
+
+.board__status-card,
+.board__feed-item {
+  @include soft-surface($radius-card);
+}
+
+.board__status-card,
+.board__feed-item {
+  padding: 16px;
+}
+
+.board__status-head,
+.board__feed-topline,
+.board__feed-meta {
+  @include flex-between;
+}
+
+.board__status-head {
+  margin-bottom: 14px;
+
+  span {
+    color: var(--text-muted);
+  }
+
+  strong {
+    display: block;
+  }
+}
+
+.board__service-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.board__service-pill {
+  padding: 12px;
+  border-radius: $radius-pill;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+
+  span,
+  small,
+  strong {
+    display: block;
+  }
+
+  strong {
+    margin: 6px 0 4px;
+  }
+
+  @each $state, $theme in $service-pill-states {
+    &[data-state="#{$state}"] {
+      border-color: map.get($theme, border);
+      background: map.get($theme, background);
+    }
+  }
+}
+
+.board__feed-copy {
+  margin: 10px 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.board__feed-meta {
+  color: var(--text-muted);
+}

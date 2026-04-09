@@ -1,0 +1,52 @@
+code {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--accent-strong);
+}
+
+.hero__title,
+.panel-card__title,
+.state-panel__title {
+  margin: 0;
+  font-family: "Rockwell", "Bahnschrift", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.hero__title {
+  font-size: clamp(2.8rem, 6vw, 5.2rem);
+  line-height: 0.94;
+  max-width: 11ch;
+}
+
+.panel-card__title,
+.state-panel__title {
+  font-size: 1.55rem;
+}
+
+.hero__eyebrow,
+.panel-card__kicker,
+.hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.hero__lead {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  color: var(--text-soft);
+  font-size: 1.04rem;
+  line-height: 1.65;
+}
+
+.panel-card__note {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
