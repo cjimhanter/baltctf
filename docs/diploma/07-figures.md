@@ -157,3 +157,77 @@ sequenceDiagram
 ```
 
 Для главы 3 эту схему можно использовать рядом с описанием checker system. Она показывает, что внешний checker-контейнер инициирует цикл, но доменная логика генерации флагов, выбора сервисных checker modules и записи `ServiceStatus` находится на стороне backend-а.
+
+## Рисунок 3.2 — Структура frontend-приложения
+
+```mermaid
+flowchart TD
+    App[App.vue\napplication shell]
+    Router[Vue Router\n/, /scoreboard, /services, /team, /admin]
+    Context[useCompetitionPage\nshared page context]
+    State[State and factories\nempty payloads, forms, loading flags]
+    Derived[Derived state\nsummary cards, roles, current round]
+    Loaders[Loaders\ndashboard, service status, settings, session, admin state]
+    TeamActions[Auth and team actions\nlogin, register, submit flag, roster]
+    AdminActions[Admin actions\nsettings, teams, services, rounds, checker tick]
+    Api[apiRequest\nToken auth + Accept-Language]
+    Backend[Backend REST API\nDjango + DRF]
+    I18n[i18n.js\nEnglish / Russian dictionary]
+    Styles[SCSS 7-1\nvendors, base, layout, components, pages]
+    Pages[Route-level pages]
+    Components[Domain components\ndashboard, services, workspace, admin]
+
+    App --> Router
+    App --> Context
+    App --> I18n
+    App --> Styles
+    Router --> Pages
+    Pages --> Components
+    Pages --> Context
+    Context --> State
+    Context --> Derived
+    Context --> Loaders
+    Context --> TeamActions
+    Context --> AdminActions
+    Loaders --> Api
+    TeamActions --> Api
+    AdminActions --> Api
+    Api --> Backend
+    I18n --> Api
+```
+
+Схема показывает, что route-level страницы не выполняют сложную бизнес-логику самостоятельно. Они получают данные и действия из `useCompetitionPage`, а сетевой слой централизован в `apiRequest`. Это упрощает тестирование и делает состояние dashboard, scoreboard, service matrix, team portal и admin console согласованным.
+
+## Рисунок 3.3 — Ручной smoke-сценарий локальной демонстрации
+
+```mermaid
+sequenceDiagram
+    participant O as Организатор
+    participant F as Frontend
+    participant B as Backend API
+    participant DB as PostgreSQL
+    participant C as Checker
+    participant V as Vulnbox services
+    participant P as Игрок
+
+    O->>F: Открыть /admin и войти как staff
+    F->>B: POST /api/auth/login/
+    B->>DB: Проверка пользователя и token
+    O->>F: Запустить раунд
+    F->>B: POST /api/admin/rounds/{id}/start/
+    B->>DB: Создать running round и флаги
+    O->>F: Run checker tick
+    F->>B: POST /api/admin/checker/tick/
+    B->>V: put/get flags по сервисам
+    B->>DB: Сохранить ServiceStatus
+    C->>B: Периодический checker tick
+    P->>F: Открыть /services и /scoreboard
+    F->>B: GET /api/service-status/ и GET /api/dashboard/
+    B-->>F: Матрица сервисов, scoreboard, history
+    P->>V: Получить флаг через demo-уязвимость
+    P->>F: Отправить флаг в /team
+    F->>B: POST /api/submit-flag/
+    B->>DB: Создать Submission и пересчитать агрегаты
+```
+
+Эту схему можно использовать рядом с разделом 3.4. Она отражает демонстрационный сценарий защиты ВКР: администратор запускает раунд и checker tick, игрок наблюдает состояние сервисов и отправляет найденный флаг, а backend пересчитывает scoreboard на основе `Submission` и `ServiceStatus`.
