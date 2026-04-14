@@ -1,4 +1,5 @@
 import json
+import re
 import secrets
 from datetime import timedelta
 
@@ -45,8 +46,164 @@ SUBMISSION_HISTORY_LIMIT = 12
 CHECKER_ISSUE_LIMIT = 6
 
 
-def _json_error(message: str, status: int = 400, **extra):
-    payload = {"ok": False, "message": message}
+API_MESSAGE_TRANSLATIONS = {
+    "ru": {
+        "Request body must be valid JSON.": "Тело запроса должно быть корректным JSON.",
+        "Authentication token is required.": "Требуется токен авторизации.",
+        "Staff access is required for this action.": "Для этого действия требуется доступ оператора.",
+        "User is not assigned to a team.": "Пользователь не привязан к команде.",
+        "Captain role is required for this action.": "Для этого действия нужна роль капитана.",
+        "Member role must be either 'captain' or 'player'.": "Роль участника должна быть 'captain' или 'player'.",
+        "Team member not found.": "Участник команды не найден.",
+        "Each participant must have a username.": "У каждого участника должно быть имя пользователя.",
+        "Each participant must be represented as an object.": "Каждый участник должен быть передан как объект.",
+        "Each team member must use a unique username.": "У каждого участника команды должно быть уникальное имя пользователя.",
+        "Team name is required.": "Укажите название команды.",
+        "Team slug could not be generated.": "Не удалось сформировать slug команды.",
+        "Team slug could not be generated. Provide team_slug explicitly.": "Не удалось сформировать slug команды. Укажите team_slug явно.",
+        "A team with this name already exists.": "Команда с таким названием уже существует.",
+        "A team with this slug already exists.": "Команда с таким slug уже существует.",
+        "Team moderation status must be approved, pending, or suspended.": "Статус модерации команды должен быть approved, pending или suspended.",
+        "Captain username is required.": "Укажите имя пользователя капитана.",
+        "Contact email is required.": "Укажите контактный email.",
+        "This team name is already reserved.": "Это название команды уже зарезервировано.",
+        "This team slug is already reserved.": "Этот slug команды уже зарезервирован.",
+        "Registration is currently closed.": "Регистрация сейчас закрыта.",
+        "Captain payload must be an object.": "Данные капитана должны быть объектом.",
+        "Participants payload must be a list.": "Список участников должен быть массивом.",
+        "An approved reservation token is required for registration.": "Для регистрации нужен одобренный токен резервирования.",
+        "Reservation token is invalid or not approved.": "Токен резервирования недействителен или не одобрен.",
+        "Reservation token has expired.": "Срок действия токена резервирования истёк.",
+        "Reservation token does not match the selected team name.": "Токен резервирования не соответствует выбранному названию команды.",
+        "Reservation token does not match the selected team slug.": "Токен резервирования не соответствует выбранному slug команды.",
+        "Username and password are required.": "Укажите имя пользователя и пароль.",
+        "Invalid username or password.": "Неверное имя пользователя или пароль.",
+        "Logged out successfully.": "Сессия завершена.",
+        "Team profile updated.": "Профиль команды обновлён.",
+        "Team must always have at least one captain.": "В команде всегда должен оставаться хотя бы один капитан.",
+        "You cannot remove your own account through the team management API.": "Нельзя удалить собственную учётную запись через API управления командой.",
+        "Only approved active teams can submit flags.": "Флаги могут отправлять только одобренные активные команды.",
+        "Flag value is required.": "Укажите значение флага.",
+        "Flag value is too long.": "Значение флага слишком длинное.",
+        "There is no active round for flag submission.": "Сейчас нет активного раунда для отправки флагов.",
+        "Too many submissions in a short time. Please wait a moment before retrying.": "Слишком много отправок за короткое время. Подождите немного перед повторной попыткой.",
+        "Unknown flag.": "Неизвестный флаг.",
+        "You cannot submit your own team's flag.": "Нельзя отправлять флаг своей команды.",
+        "This flag is not valid for the current round.": "Этот флаг не подходит для текущего раунда.",
+        "This flag belongs to a round that has not started yet.": "Этот флаг относится к раунду, который ещё не начался.",
+        "This flag has expired.": "Срок действия этого флага истёк.",
+        "This flag has already been submitted successfully.": "Этот флаг уже был успешно отправлен.",
+        "registration_ends_at must be later than registration_starts_at.": "registration_ends_at должен быть позже registration_starts_at.",
+        "round_duration_minutes must be positive.": "round_duration_minutes должен быть положительным.",
+        "round_break_minutes cannot be negative.": "round_break_minutes не может быть отрицательным.",
+        "Round schedule count must be an integer.": "Количество раундов в расписании должно быть целым числом.",
+        "Round schedule count must be between 1 and 10.": "Количество раундов в расписании должно быть от 1 до 10.",
+        "Service name is required.": "Укажите название сервиса.",
+        "Service slug could not be generated.": "Не удалось сформировать slug сервиса.",
+        "A service with this name already exists.": "Сервис с таким названием уже существует.",
+        "A service with this slug already exists.": "Сервис с таким slug уже существует.",
+        "Service port must be an integer.": "Порт сервиса должен быть целым числом.",
+        "Service port must be between 1 and 65535.": "Порт сервиса должен быть от 1 до 65535.",
+        "Reservation not found.": "Резервирование не найдено.",
+        "Claimed reservations cannot be modified.": "Использованное резервирование нельзя изменить.",
+        "Team not found.": "Команда не найдена.",
+        "Service not found.": "Сервис не найден.",
+        "Round number must be an integer.": "Номер раунда должен быть целым числом.",
+        "A round with this number already exists.": "Раунд с таким номером уже существует.",
+        "Round not found.": "Раунд не найден.",
+        "Finished rounds cannot be restarted.": "Завершённые раунды нельзя запускать повторно.",
+        "Only a running round can be finished.": "Завершить можно только running round.",
+        "There is no running round for the checker tick.": "Нет running round для запуска checker tick.",
+        "Enter a valid email address.": "Введите корректный email-адрес.",
+        "This password is too short. It must contain at least 8 characters.": "Пароль слишком короткий. Он должен содержать минимум 8 символов.",
+        "This password is too common.": "Этот пароль слишком распространён.",
+        "This password is entirely numeric.": "Пароль не должен состоять только из цифр.",
+    }
+}
+
+API_MESSAGE_PATTERNS = {
+    "ru": [
+        (
+            re.compile(r"^Team registration is limited to (?P<count>\d+) members\.$"),
+            "Регистрация команды ограничена {count} участниками.",
+        ),
+        (
+            re.compile(r"^Team size is limited to (?P<count>\d+) members\.$"),
+            "Размер команды ограничен {count} участниками.",
+        ),
+        (
+            re.compile(r"^User '(?P<username>[^']+)' must have a password\.$"),
+            "У пользователя '{username}' должен быть пароль.",
+        ),
+        (
+            re.compile(r"^Username '(?P<username>[^']+)' is already taken\.$"),
+            "Имя пользователя '{username}' уже занято.",
+        ),
+        (
+            re.compile(r"^Member '(?P<username>[^']+)' is already a (?P<role>[^.]+)\.$"),
+            "Участник '{username}' уже имеет роль {role}.",
+        ),
+        (
+            re.compile(r"^Member '(?P<username>[^']+)' role updated to (?P<role>[^.]+)\.$"),
+            "Роль участника '{username}' изменена на {role}.",
+        ),
+        (
+            re.compile(r"^Member '(?P<username>[^']+)' removed from the team\.$"),
+            "Участник '{username}' удалён из команды.",
+        ),
+        (
+            re.compile(r"^Round (?P<number>\d+) is already running\.$"),
+            "Раунд {number} уже запущен.",
+        ),
+        (
+            re.compile(
+                r"^Round (?P<number>\d+) is already running\. Finish it before starting another round\.$"
+            ),
+            "Раунд {number} уже запущен. Завершите его перед запуском другого раунда.",
+        ),
+    ]
+}
+
+
+def _get_request_language(request) -> str:
+    if request is None:
+        return "en"
+
+    accept_language = request.headers.get("Accept-Language", "")
+    for language_range in accept_language.split(","):
+        language_code = language_range.split(";")[0].strip().lower()
+        if language_code == "ru" or language_code.startswith("ru-"):
+            return "ru"
+        if language_code == "en" or language_code.startswith("en-"):
+            return "en"
+
+    return "en"
+
+
+def _localize_api_message(message: str, request=None) -> str:
+    language_code = _get_request_language(request)
+    if language_code == "en":
+        return message
+
+    translations = API_MESSAGE_TRANSLATIONS.get(language_code, {})
+    patterns = API_MESSAGE_PATTERNS.get(language_code, [])
+    localized_parts = []
+
+    for part in message.split("; "):
+        translated = translations.get(part)
+        if translated is None:
+            for pattern, template in patterns:
+                match = pattern.match(part)
+                if match:
+                    translated = template.format(**match.groupdict())
+                    break
+        localized_parts.append(translated or part)
+
+    return "; ".join(localized_parts)
+
+
+def _json_error(message: str, status: int = 400, request=None, **extra):
+    payload = {"ok": False, "message": _localize_api_message(message, request)}
     payload.update(extra)
     return JsonResponse(payload, status=status)
 
@@ -89,9 +246,17 @@ def _get_request_user(request):
 def _require_staff_user(request):
     user = _get_request_user(request)
     if user is None:
-        return None, _json_error("Authentication token is required.", status=401)
+        return None, _json_error(
+            "Authentication token is required.",
+            status=401,
+            request=request,
+        )
     if not user.is_staff:
-        return None, _json_error("Staff access is required for this action.", status=403)
+        return None, _json_error(
+            "Staff access is required for this action.",
+            status=403,
+            request=request,
+        )
     return user, None
 
 
@@ -304,11 +469,19 @@ def _get_team_membership(user):
 def _require_team_membership(request):
     user = _get_request_user(request)
     if user is None:
-        return None, None, _json_error("Authentication token is required.", status=401)
+        return None, None, _json_error(
+            "Authentication token is required.",
+            status=401,
+            request=request,
+        )
 
     membership = _get_team_membership(user)
     if membership is None:
-        return user, None, _json_error("User is not assigned to a team.", status=403)
+        return user, None, _json_error(
+            "User is not assigned to a team.",
+            status=403,
+            request=request,
+        )
 
     return user, membership, None
 
@@ -322,6 +495,7 @@ def _require_team_captain(request):
         return user, membership, _json_error(
             "Captain role is required for this action.",
             status=403,
+            request=request,
         )
 
     return user, membership, None
@@ -1396,13 +1570,17 @@ def registration_settings(request):
 def reserve_team_name(request):
     settings_obj = _get_settings()
     if not settings_obj.is_registration_available():
-        return _json_error("Registration is currently closed.", status=403)
+        return _json_error(
+            "Registration is currently closed.",
+            status=403,
+            request=request,
+        )
 
     try:
         payload = _parse_json_body(request)
         reservation_data = _validate_reservation_payload(payload)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     reservation = TeamReservation.objects.create(
         **reservation_data,
@@ -1434,7 +1612,11 @@ def me(request):
 def register(request):
     settings_obj = _get_settings()
     if not settings_obj.is_registration_available():
-        return _json_error("Registration is currently closed.", status=403)
+        return _json_error(
+            "Registration is currently closed.",
+            status=403,
+            request=request,
+        )
 
     try:
         payload = _parse_json_body(request)
@@ -1537,7 +1719,7 @@ def register(request):
         return JsonResponse(response_payload, status=201)
 
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
 
 @csrf_exempt
@@ -1546,17 +1728,25 @@ def login(request):
     try:
         payload = _parse_json_body(request)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     username = (payload.get("username") or "").strip()
     password = payload.get("password") or ""
 
     if not username or not password:
-        return _json_error("Username and password are required.", status=400)
+        return _json_error(
+            "Username and password are required.",
+            status=400,
+            request=request,
+        )
 
     user = authenticate(request, username=username, password=password)
     if user is None:
-        return _json_error("Invalid username or password.", status=401)
+        return _json_error(
+            "Invalid username or password.",
+            status=401,
+            request=request,
+        )
 
     token, _ = Token.objects.get_or_create(user=user)
     response_payload = _build_auth_payload(user)
@@ -1570,7 +1760,11 @@ def login(request):
 def logout(request):
     user = _get_request_user(request)
     if user is None:
-        return _json_error("Authentication token is required.", status=401)
+        return _json_error(
+            "Authentication token is required.",
+            status=401,
+            request=request,
+        )
 
     token_key = _extract_token_key(request)
     Token.objects.filter(key=token_key, user=user).delete()
@@ -1588,7 +1782,7 @@ def team_update(request):
         payload = _parse_json_body(request)
         team_profile = _validate_team_profile_payload(payload)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     team = membership.team
     for field, value in team_profile.items():
@@ -1611,13 +1805,14 @@ def team_add_member(request):
     try:
         payload = _parse_json_body(request)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     member_count = TeamMember.objects.filter(team=membership.team).count()
     if member_count >= MAX_TEAM_MEMBERS:
         return _json_error(
             f"Team size is limited to {MAX_TEAM_MEMBERS} members.",
             status=409,
+            request=request,
         )
 
     try:
@@ -1629,7 +1824,7 @@ def team_add_member(request):
                 role=TeamMember.Role.PLAYER,
             )
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     response_payload = _build_auth_payload(user)
     response_payload["ok"] = True
@@ -1652,7 +1847,7 @@ def team_update_member_role(request, user_id: int):
     except ValidationError as error:
         message = "; ".join(error.messages)
         status = 404 if "not found" in message.lower() else 400
-        return _json_error(message, status=status)
+        return _json_error(message, status=status, request=request)
 
     if target_membership.role == TeamMember.Role.CAPTAIN and role != TeamMember.Role.CAPTAIN:
         captain_count = TeamMember.objects.filter(
@@ -1663,6 +1858,7 @@ def team_update_member_role(request, user_id: int):
             return _json_error(
                 "Team must always have at least one captain.",
                 status=409,
+                request=request,
             )
 
     if target_membership.role == role:
@@ -1697,12 +1893,13 @@ def team_remove_member(request, user_id: int):
         return _json_error(
             "You cannot remove your own account through the team management API.",
             status=409,
+            request=request,
         )
 
     try:
         target_membership = _get_team_member_or_404(membership.team, user_id)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=404)
+        return _json_error("; ".join(error.messages), status=404, request=request)
 
     if target_membership.role == TeamMember.Role.CAPTAIN:
         captain_count = TeamMember.objects.filter(
@@ -1713,6 +1910,7 @@ def team_remove_member(request, user_id: int):
             return _json_error(
                 "Team must always have at least one captain.",
                 status=409,
+                request=request,
             )
 
     username = target_membership.user.username
@@ -1736,22 +1934,27 @@ def submit_flag(request):
         return _json_error(
             "Only approved active teams can submit flags.",
             status=403,
+            request=request,
         )
 
     try:
         payload = _parse_json_body(request)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     submitted_value = (payload.get("flag") or "").strip()
     if not submitted_value:
-        return _json_error("Flag value is required.", status=400)
+        return _json_error("Flag value is required.", status=400, request=request)
     if len(submitted_value) > 128:
-        return _json_error("Flag value is too long.", status=400)
+        return _json_error("Flag value is too long.", status=400, request=request)
 
     current_round = _get_current_round()
     if current_round is None or current_round.state != Round.State.RUNNING:
-        return _json_error("There is no active round for flag submission.", status=409)
+        return _json_error(
+            "There is no active round for flag submission.",
+            status=409,
+            request=request,
+        )
 
     now = timezone.now()
     recent_cutoff = now - timedelta(seconds=SUBMISSION_RATE_WINDOW_SECONDS)
@@ -1763,6 +1966,7 @@ def submit_flag(request):
         return _json_error(
             "Too many submissions in a short time. Please wait a moment before retrying.",
             status=429,
+            request=request,
         )
 
     submission_data = {
@@ -1790,7 +1994,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1807,7 +2011,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1824,7 +2028,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1841,7 +2045,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1858,7 +2062,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1875,7 +2079,7 @@ def submit_flag(request):
             return JsonResponse(
                 {
                     "ok": False,
-                    "message": submission.message,
+                    "message": _localize_api_message(submission.message, request),
                     "submission": _serialize_submission(submission),
                 },
                 status=400,
@@ -1923,7 +2127,7 @@ def admin_update_settings(request):
         payload = _parse_json_body(request)
         update_data = _validate_settings_payload(payload)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     settings_obj = _get_settings()
     for field, value in update_data.items():
@@ -1949,9 +2153,13 @@ def admin_approve_reservation(request, reservation_id: int):
 
     reservation = TeamReservation.objects.filter(pk=reservation_id).first()
     if reservation is None:
-        return _json_error("Reservation not found.", status=404)
+        return _json_error("Reservation not found.", status=404, request=request)
     if reservation.status == TeamReservation.Status.CLAIMED:
-        return _json_error("Claimed reservations cannot be modified.", status=409)
+        return _json_error(
+            "Claimed reservations cannot be modified.",
+            status=409,
+            request=request,
+        )
 
     reservation.status = TeamReservation.Status.APPROVED
     reservation.reviewed_at = timezone.now()
@@ -1975,14 +2183,18 @@ def admin_reject_reservation(request, reservation_id: int):
 
     reservation = TeamReservation.objects.filter(pk=reservation_id).first()
     if reservation is None:
-        return _json_error("Reservation not found.", status=404)
+        return _json_error("Reservation not found.", status=404, request=request)
     if reservation.status == TeamReservation.Status.CLAIMED:
-        return _json_error("Claimed reservations cannot be modified.", status=409)
+        return _json_error(
+            "Claimed reservations cannot be modified.",
+            status=409,
+            request=request,
+        )
 
     try:
         payload = _parse_json_body(request)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     reservation.status = TeamReservation.Status.REJECTED
     reservation.note = (payload.get("note") or "").strip()
@@ -2009,7 +2221,7 @@ def admin_create_team(request):
         payload = _parse_json_body(request)
         team = Team.objects.create(**_validate_team_payload(payload, allow_moderation=True))
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     return JsonResponse(
         {
@@ -2031,13 +2243,13 @@ def admin_update_team(request, team_id: int):
 
     team = Team.objects.filter(pk=team_id).first()
     if team is None:
-        return _json_error("Team not found.", status=404)
+        return _json_error("Team not found.", status=404, request=request)
 
     try:
         payload = _parse_json_body(request)
         update_data = _validate_team_payload(payload, team=team, allow_moderation=True)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     for field, value in update_data.items():
         setattr(team, field, value)
@@ -2062,7 +2274,7 @@ def admin_delete_team(request, team_id: int):
 
     team = Team.objects.filter(pk=team_id).first()
     if team is None:
-        return _json_error("Team not found.", status=404)
+        return _json_error("Team not found.", status=404, request=request)
 
     team_name = team.name
     team.delete()
@@ -2087,7 +2299,7 @@ def admin_create_service(request):
         payload = _parse_json_body(request)
         service = Service.objects.create(**_validate_service_payload(payload))
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     return JsonResponse(
         {
@@ -2109,13 +2321,13 @@ def admin_update_service(request, service_id: int):
 
     service = Service.objects.filter(pk=service_id).first()
     if service is None:
-        return _json_error("Service not found.", status=404)
+        return _json_error("Service not found.", status=404, request=request)
 
     try:
         payload = _parse_json_body(request)
         update_data = _validate_service_payload(payload, service=service)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     for field, value in update_data.items():
         setattr(service, field, value)
@@ -2140,7 +2352,7 @@ def admin_delete_service(request, service_id: int):
 
     service = Service.objects.filter(pk=service_id).first()
     if service is None:
-        return _json_error("Service not found.", status=404)
+        return _json_error("Service not found.", status=404, request=request)
 
     service_name = service.name
     service.delete()
@@ -2178,7 +2390,7 @@ def admin_create_round(request):
             started_at=timezone.now(),
         )
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     return JsonResponse(
         {
@@ -2202,7 +2414,7 @@ def admin_schedule_rounds(request):
         payload = _parse_json_body(request)
         schedule_data = _validate_round_schedule_payload(payload)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=400)
+        return _json_error("; ".join(error.messages), status=400, request=request)
 
     settings_obj = _get_settings()
     duration = timedelta(minutes=settings_obj.round_duration_minutes)
@@ -2248,18 +2460,27 @@ def admin_start_round(request, round_id: int):
 
     round_obj = Round.objects.filter(pk=round_id).first()
     if round_obj is None:
-        return _json_error("Round not found.", status=404)
+        return _json_error("Round not found.", status=404, request=request)
 
     if round_obj.state == Round.State.FINISHED:
-        return _json_error("Finished rounds cannot be restarted.", status=409)
+        return _json_error(
+            "Finished rounds cannot be restarted.",
+            status=409,
+            request=request,
+        )
     if round_obj.state == Round.State.RUNNING:
-        return _json_error(f"Round {round_obj.number} is already running.", status=409)
+        return _json_error(
+            f"Round {round_obj.number} is already running.",
+            status=409,
+            request=request,
+        )
 
     running_round = Round.objects.filter(state=Round.State.RUNNING).exclude(pk=round_obj.pk).first()
     if running_round is not None:
         return _json_error(
             f"Round {running_round.number} is already running. Finish it before starting another round.",
             status=409,
+            request=request,
         )
 
     round_obj.state = Round.State.RUNNING
@@ -2288,10 +2509,14 @@ def admin_finish_round(request, round_id: int):
 
     round_obj = Round.objects.filter(pk=round_id).first()
     if round_obj is None:
-        return _json_error("Round not found.", status=404)
+        return _json_error("Round not found.", status=404, request=request)
 
     if round_obj.state != Round.State.RUNNING:
-        return _json_error("Only a running round can be finished.", status=409)
+        return _json_error(
+            "Only a running round can be finished.",
+            status=409,
+            request=request,
+        )
 
     finished_at = timezone.now()
     round_obj.state = Round.State.FINISHED
@@ -2318,7 +2543,7 @@ def admin_generate_flags(request, round_id: int):
 
     round_obj = Round.objects.filter(pk=round_id).first()
     if round_obj is None:
-        return _json_error("Round not found.", status=404)
+        return _json_error("Round not found.", status=404, request=request)
 
     created_flags = ensure_flags_for_round(round_obj)
     return JsonResponse(
@@ -2341,12 +2566,16 @@ def admin_checker_tick(request):
 
     current_round = Round.objects.filter(state=Round.State.RUNNING).order_by("-number").first()
     if current_round is None:
-        return _json_error("There is no running round for the checker tick.", status=409)
+        return _json_error(
+            "There is no running round for the checker tick.",
+            status=409,
+            request=request,
+        )
 
     try:
         tick_result = run_checker_tick(current_round)
     except ValidationError as error:
-        return _json_error("; ".join(error.messages), status=409)
+        return _json_error("; ".join(error.messages), status=409, request=request)
 
     return JsonResponse(
         {

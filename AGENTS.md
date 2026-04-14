@@ -117,6 +117,7 @@ Implemented:
 - Admin checker diagnostics in `admin/state`, including expected/checked/unknown counts and latest non-UP checker messages for the running round.
 - Vue routes for dashboard, full scoreboard, service matrix, team portal, and admin console.
 - English/Russian language switch; frontend sends `Accept-Language`.
+- Backend localizes common API validation/error messages for `Accept-Language: ru`.
 - Vitest coverage for app/pages/composables.
 - Checker tick performs real HTTP `put/get` operations against demo vulnbox services and records `ServiceStatus`.
 
@@ -124,7 +125,7 @@ Still simplified:
 
 - Checker work runs synchronously inside backend request handling.
 - Demo vulnbox services are shared in local Docker, not isolated per team VM/container.
-- Some backend validation messages remain English-only.
+- Some rare backend/Django validation messages remain English-only.
 - No full Docker-based end-to-end checker/vulnbox test suite yet.
 
 ## API Overview
@@ -209,3 +210,4 @@ Staff endpoints live under `/api/admin/...`; see `backend/ctf/urls.py` and `docs
 - 2026-04-13: Added a Vue `/scoreboard` route and first control-room UI pass inspired by the reference Attack-and-Defense-CTF-Platform frontend, without changing backend APIs.
 - 2026-04-13: Created this file after reviewing README, docs, Docker Compose, backend models/routes, frontend router/API setup, package scripts, and current project structure.
 - 2026-04-14: Added `admin/state.current_checker_diagnostics` and surfaced it in the Vue admin console so operators can see checker coverage, unknown checks, issue counts, and latest vulnbox/checker messages.
+- 2026-04-14: Added request-aware localization for common backend API validation/error messages when clients send `Accept-Language: ru`.

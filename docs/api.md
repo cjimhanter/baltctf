@@ -54,7 +54,7 @@
 Authorization: Token <token>
 ```
 
-Frontend дополнительно отправляет `Accept-Language`, чтобы UI и будущая серверная локализация могли работать согласованно.
+Frontend дополнительно отправляет `Accept-Language`. Backend использует `Accept-Language: ru` для частых validation/error messages auth, registration, team management, flag submission и admin workflow; английский остаётся языком по умолчанию.
 
 ## Payload notes
 

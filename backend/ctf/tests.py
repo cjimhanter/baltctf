@@ -374,6 +374,42 @@ class AuthApiTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["message"], "Registration is currently closed.")
 
+    def test_accept_language_localizes_common_auth_validation_errors(self):
+        login_response = self.client.post(
+            reverse("login"),
+            data={},
+            content_type="application/json",
+            HTTP_ACCEPT_LANGUAGE="ru,en;q=0.9",
+        )
+
+        self.assertEqual(login_response.status_code, 400)
+        self.assertEqual(
+            login_response.json()["message"],
+            "Укажите имя пользователя и пароль.",
+        )
+
+        settings_obj = CompetitionSettings.get_solo()
+        settings_obj.registration_open = False
+        settings_obj.save(update_fields=["registration_open"])
+
+        register_response = self.client.post(
+            reverse("register"),
+            data={
+                "team_name": "Closed Window",
+                "captain": {
+                    "username": "closed_captain",
+                    "password": "VeryStrongPass123!",
+                    "email": "closed@example.com",
+                },
+                "participants": [],
+            },
+            content_type="application/json",
+            HTTP_ACCEPT_LANGUAGE="ru",
+        )
+
+        self.assertEqual(register_response.status_code, 403)
+        self.assertEqual(register_response.json()["message"], "Регистрация сейчас закрыта.")
+
     def test_login_and_me_endpoints_return_team_context(self):
         team = Team.objects.create(
             name="North",
@@ -949,6 +985,20 @@ class SubmissionApiTests(BaseApiTestCase):
 
         self.assertEqual(response.status_code, 401)
 
+    def test_submit_flag_localizes_error_message_without_changing_audit_message(self):
+        response = self.client.post(
+            reverse("submit-flag"),
+            data={"flag": "BALTCTF{UNKNOWN_FLAG}"},
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Token {self.blue_token.key}",
+            HTTP_ACCEPT_LANGUAGE="ru",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        payload = response.json()
+        self.assertEqual(payload["message"], "Неизвестный флаг.")
+        self.assertEqual(payload["submission"]["message"], "Unknown flag.")
+
 
 class TeamManagementApiTests(BaseApiTestCase):
     def test_captain_can_update_team_profile_and_manage_members(self):
@@ -1021,6 +1071,24 @@ class TeamManagementApiTests(BaseApiTestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["message"], "Captain role is required for this action.")
+
+        localized_response = self.client.post(
+            reverse("team-add-member"),
+            data={
+                "username": "blue_player2",
+                "password": "VeryStrongPass123!",
+                "email": "blue_player2@example.com",
+            },
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Token {self.blue_token.key}",
+            HTTP_ACCEPT_LANGUAGE="ru",
+        )
+
+        self.assertEqual(localized_response.status_code, 403)
+        self.assertEqual(
+            localized_response.json()["message"],
+            "Для этого действия нужна роль капитана.",
+        )
 
     def test_team_management_protects_last_captain_and_self_removal(self):
         remove_self_response = self.client.post(

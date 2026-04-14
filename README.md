@@ -27,6 +27,7 @@ This repository now contains the first working platform slice. It provides:
 - API endpoints for registration windows, team name reservations, authentication, moderation, round scheduling, expanded dashboard stats, service status history, and flag submission history
 - a Vue frontend with dedicated routes for dashboard, full scoreboard, checker/service timeline, team profile, and admin tools
 - frontend styles decomposed with the SCSS 7-1 architecture
+- backend API returns localized common validation/error messages for `Accept-Language: ru`
 - a checker service that authenticates into the backend and triggers checker ticks for running rounds
 - three intentionally vulnerable demo services used by real service-specific checker modules:
   - `atlas-board`

@@ -56,7 +56,8 @@
 - team portal
 - admin console
 - клиентские success/fallback messages
+- частые backend API validation/error messages при `Accept-Language: ru`
 
 ## Ограничение текущей версии
 
-Часть backend validation messages по-прежнему приходит с сервера на английском. Для полного двуязычного опыта потребуется отдельная локализация Django-ответов.
+Часть редких backend/Django validation messages по-прежнему может приходить с сервера на английском. Для полного двуязычного опыта потребуется расширять серверный словарь и унифицировать все Django-ответы.
