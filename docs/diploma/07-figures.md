@@ -1,6 +1,6 @@
-# ПРИЛОЖЕНИЕ Б. Заготовки схем и рисунков
+# Приложение Б. Схемы и рисунки платформы
 
-В этом приложении собраны черновые схемы, которые можно использовать при финальной верстке ВКР. В Markdown они оформлены как Mermaid-диаграммы. При переносе в `.docx` их можно экспортировать в изображения и подписать в соответствии с требованиями методических указаний.
+В этом приложении собраны схемы, которые можно использовать при финальной верстке ВКР. В Markdown они оформлены как Mermaid-диаграммы. При переносе в `.docx` их можно экспортировать в изображения и подписать в соответствии с требованиями методических указаний.
 
 ## Рисунок 2.1 — Общая архитектура платформы `baltctf`
 
@@ -156,7 +156,7 @@ sequenceDiagram
     end
 ```
 
-Для главы 3 эту схему можно использовать рядом с описанием checker system. Она показывает, что внешний checker-контейнер инициирует цикл, но доменная логика генерации флагов, выбора сервисных checker modules и записи `ServiceStatus` находится на стороне backend-а.
+Для главы 3 эту схему можно использовать рядом с описанием checker-системы. Она показывает, что внешний checker-контейнер инициирует цикл, но доменная логика генерации флагов, выбора сервисных checker modules и записи `ServiceStatus` находится на стороне backend.
 
 ## Рисунок 3.2 — Структура frontend-приложения
 
@@ -165,7 +165,7 @@ flowchart TD
     App[App.vue\napplication shell]
     Router[Vue Router\n/, /scoreboard, /services, /team, /admin]
     Context[useCompetitionPage\nshared page context]
-    State[State and factories\nempty payloads, forms, loading flags]
+    State[State and factories\nempty JSON data, forms, loading flags]
     Derived[Derived state\nsummary cards, roles, current round]
     Loaders[Loaders\ndashboard, service status, settings, session, admin state]
     TeamActions[Auth and team actions\nlogin, register, submit flag, roster]
@@ -196,7 +196,9 @@ flowchart TD
     I18n --> Api
 ```
 
-Схема показывает, что route-level страницы не выполняют сложную бизнес-логику самостоятельно. Они получают данные и действия из `useCompetitionPage`, а сетевой слой централизован в `apiRequest`. Это упрощает тестирование и делает состояние dashboard, scoreboard, service matrix, team portal и admin console согласованным.
+Схема показывает, что страницы уровня маршрутов не выполняют сложную бизнес-логику самостоятельно. Они получают данные и действия из `useCompetitionPage`, а сетевой слой централизован в `apiRequest`. Это упрощает тестирование и делает состояние dashboard, scoreboard, service matrix, team portal и admin console согласованным.
+
+В основном тексте рисунок 3.2 рекомендуется разместить в подразделе 3.3 после описания `useCompetitionPage` и модулей `competitionPage*.js`. В этом месте схема помогает связать текст о маршрутах, composable-слое, сетевом клиенте, локализации и SCSS-структуре.
 
 ## Рисунок 3.3 — Ручной smoke-сценарий локальной демонстрации
 
@@ -224,10 +226,10 @@ sequenceDiagram
     P->>F: Открыть /services и /scoreboard
     F->>B: GET /api/service-status/ и GET /api/dashboard/
     B-->>F: Матрица сервисов, scoreboard, history
-    P->>V: Получить флаг через demo-уязвимость
+    P->>V: Получить флаг через демонстрационную уязвимость
     P->>F: Отправить флаг в /team
     F->>B: POST /api/submit-flag/
     B->>DB: Создать Submission и пересчитать агрегаты
 ```
 
-Эту схему можно использовать рядом с разделом 3.4. Она отражает демонстрационный сценарий защиты ВКР: администратор запускает раунд и checker tick, игрок наблюдает состояние сервисов и отправляет найденный флаг, а backend пересчитывает scoreboard на основе `Submission` и `ServiceStatus`.
+Эту схему можно использовать рядом с разделом 3.4 перед или после нумерованного smoke-сценария. Она отражает демонстрационный сценарий защиты ВКР: администратор запускает раунд и checker tick, игрок наблюдает состояние сервисов и отправляет найденный флаг, а backend пересчитывает scoreboard на основе `Submission` и `ServiceStatus`.
