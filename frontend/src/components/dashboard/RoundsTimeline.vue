@@ -34,6 +34,11 @@ const { t } = useI18n();
         <span class="round-timeline__label">{{ t("common.roundLabel", { number: round.number }) }}</span>
         <strong class="round-timeline__state">{{ t(`roundState.${round.state}`) }}</strong>
         <small class="round-timeline__time">{{ formatDateTime(round.started_at) }}</small>
+        <div class="round-timeline__stats">
+          <span>{{ t("timeline.attack", { count: round.attack_points || 0 }) }}</span>
+          <span>{{ t("timeline.defense", { count: round.defense_points || 0 }) }}</span>
+          <span>{{ t("timeline.checks", { count: round.checker_status_count || 0 }) }}</span>
+        </div>
       </article>
     </div>
   </section>

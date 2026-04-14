@@ -11,16 +11,17 @@
 
 ### Frontend implementation structure
 - `App.vue` собирает приложение как shell с верхней навигацией и `router-view`
-- `router/index.js` управляет маршрутами `/`, `/services`, `/team`, `/admin`
+- `router/index.js` управляет маршрутами `/`, `/scoreboard`, `/services`, `/team`, `/admin`
 - `components/access` отвечает за гостевой auth/registration flow
 - `components/workspace` отвечает за team session, captain tools и flag submission
 - `components/admin` отвечает за operator console
-- `components/dashboard` отвечает за hero, scoreboard, service matrix, activity feed и timeline
-- `components/services` отвечает за выделенную матрицу статусов сервисов
-- `pages/` содержит route-level страницы для dashboard, team profile, service status и admin tools
-- `composables/useCompetitionPage.js` хранит shared state и операции с backend API
+- `components/dashboard` отвечает за dashboard summary, compact scoreboard, activity feed, service timeline и submission history
+- `components/services` отвечает за выделенную матрицу статусов сервисов текущего раунда
+- `pages/` содержит route-level страницы для dashboard, full scoreboard, team profile, service status и admin tools
+- `composables/useCompetitionPage.js` выступает orchestration entrypoint и отдаёт единый page context для маршрутов
+- `composables/competitionPage*.js` разделяют factories, state, derived, loaders, mutations, auth/team actions и admin actions
 - `i18n.js` хранит словарь интерфейса и глобальное переключение языка `EN/RU`
-- шаблоны Vue приведены к BEM-именованию, а SCSS разложен по 7-1 архитектуре
+- шаблоны Vue приведены к BEM-именованию, а SCSS разложен по 7-1 архитектуре с локальным vendor normalize слоем
 
 ### Checking system
 - flag generation
@@ -73,10 +74,10 @@
 
 ## Current API slice
 
-- `GET /api/summary/` - агрегированные счётчики
-- `GET /api/scoreboard/` - таблица команд и очков
-- `GET /api/dashboard/` - единый payload для frontend dashboard
-- `GET /api/service-status/` - матрица статусов сервисов
+- `GET /api/summary/` - агрегированные счётчики, включая attack/defense totals и checker counts
+- `GET /api/scoreboard/` - таблица команд и очков с per-team submission/check stats и service analytics
+- `GET /api/dashboard/` - единый payload для frontend dashboard, включая checker history и submission history
+- `GET /api/service-status/` - матрица статусов сервисов текущего раунда и checker timeline по раундам
 - `GET /api/registration/settings/` - публичные настройки окна регистрации
 - `POST /api/team-reservations/` - заявка на резервирование названия команды
 - `POST /api/auth/register/` - регистрация команды и участников
@@ -102,3 +103,4 @@
 3. Backend ensures flags exist for each approved active team/service pair and runs service-specific `put/get` checks against the demo vulnbox services.
 4. Teams submit captured flags through the web platform.
 5. Backend calculates the scoreboard from checker results and valid submissions.
+6. Frontend surfaces expanded stats, service timeline history, and recent submission history without requiring extra route changes.

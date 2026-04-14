@@ -1,12 +1,24 @@
 @use "../abstracts" as *;
 
+.dashboard-page__ops-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 16px;
+}
+
 @media (max-width: $bp-tablet) {
   .hero,
   .metrics,
+  .metrics--five-up,
   .guest-access,
   .workspace,
   .admin-console,
+  .dashboard-page__ops-grid,
+  .guest-access__fields,
+  .guest-access__participant-fields,
+  .workspace__fields,
   .workspace__tools,
+  .admin-console__fields,
   .admin-console__checker-summary,
   .board__grid,
   .board__sidebar,
@@ -23,7 +35,7 @@
 }
 
 @media (max-width: $bp-mobile) {
-  .page {
+  .app-layout {
     width: min(100%, calc(100% - 20px));
     padding-top: 20px;
     padding-bottom: 40px;
@@ -41,29 +53,35 @@
   }
 
   .hero__title {
-    font-size: clamp(2.2rem, 12vw, 3.4rem);
+    font-size: 2.55rem;
   }
 
   .panel-card__header,
   .app-shell__top,
-  .route-page__header,
-  .guest-access__subsection-head,
-  .guest-access__participant-head,
+  .page-shell__header,
+  .guest-access__panel-header,
+  .guest-access__section-head,
+  .guest-access__participant-header,
+  .workspace__panel-header,
   .workspace__section-head,
   .workspace__member,
   .workspace__activity-topline,
   .workspace__activity-meta,
+  .admin-console__panel-header,
   .admin-console__checker,
   .admin-console__entity,
   .admin-console__actions,
   .board__status-head,
-  .board__feed-topline,
-  .board__feed-meta {
+    .board__feed-topline,
+  .board__feed-meta,
+  .service-timeline__round-head,
+  .service-timeline__service-head,
+  .service-timeline__meta {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .route-page__meta,
+  .page-shell__meta,
   .app-shell__controls,
   .app-shell__language,
   .app-shell__session {

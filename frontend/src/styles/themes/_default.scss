@@ -1,23 +1,23 @@
 :root {
-  --bg-deep: #09131a;
-  --bg-surface: rgba(9, 20, 28, 0.78);
-  --bg-surface-strong: rgba(8, 16, 24, 0.92);
-  --line: rgba(176, 228, 214, 0.16);
-  --line-strong: rgba(176, 228, 214, 0.28);
-  --text-main: #eef6f0;
-  --text-soft: #a7beb8;
-  --text-muted: #7f9993;
-  --accent: #f4b65f;
-  --accent-strong: #ffcf7d;
-  --good: #69d59b;
-  --warn: #f4b65f;
-  --bad: #ff7a6b;
-  --unknown: #8aa3b0;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-  font-family: "Bahnschrift", "Avenir Next", "Segoe UI", sans-serif;
+  --bg-deep: #101210;
+  --bg-surface: rgba(24, 27, 24, 0.86);
+  --bg-surface-strong: rgba(16, 18, 16, 0.96);
+  --line: rgba(221, 232, 213, 0.14);
+  --line-strong: rgba(221, 232, 213, 0.28);
+  --text-main: #f1f4ec;
+  --text-soft: #b8c2ae;
+  --text-muted: #89947f;
+  --accent: #72d68b;
+  --accent-strong: #a7efb6;
+  --accent-warm: #e1b866;
+  --good: #72d68b;
+  --warn: #e1b866;
+  --bad: #ff8274;
+  --unknown: #a1a998;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  font-family: "Avenir Next", "Segoe UI", "Inter", sans-serif;
   color: var(--text-main);
   background:
-    radial-gradient(circle at top left, rgba(91, 179, 153, 0.22), transparent 28%),
-    radial-gradient(circle at top right, rgba(244, 182, 95, 0.14), transparent 22%),
-    linear-gradient(145deg, #071016, #0d1e26 45%, #122b2f);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 280px),
+    linear-gradient(135deg, #101210, #171a16 48%, #201d17);
 }

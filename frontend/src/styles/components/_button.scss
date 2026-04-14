@@ -3,8 +3,16 @@
 .button {
   @include action-control;
   border: 0;
-  background: linear-gradient(135deg, #f0a54a, #ffd88f);
-  color: #122026;
+  background: var(--accent);
+  color: #101210;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
 
   &:disabled {
     cursor: not-allowed;
@@ -23,15 +31,15 @@
   }
 
   &--secondary {
-    border: 1px solid rgba(244, 182, 95, 0.22);
-    background: rgba(244, 182, 95, 0.1);
+    border: 1px solid rgba(114, 214, 139, 0.28);
+    background: rgba(114, 214, 139, 0.1);
     color: var(--accent-strong);
   }
 }
 
 .tag {
   padding: 0.3rem 0.7rem;
-  border-radius: 999px;
+  border-radius: 8px;
   border: 1px solid var(--line);
   font-size: 0.8rem;
   letter-spacing: 0.06em;

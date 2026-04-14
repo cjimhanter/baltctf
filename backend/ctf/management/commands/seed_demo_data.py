@@ -163,6 +163,17 @@ def build_team_user_specs(team_slug: str, affiliation: str) -> list[dict]:
     ]
 
 
+def build_demo_usernames() -> list[str]:
+    usernames = []
+    for team_data in TEAM_FIXTURES:
+        user_specs = build_team_user_specs(
+            team_data["slug"],
+            team_data["affiliation"] or team_data["name"],
+        )
+        usernames.extend(user_spec["username"] for user_spec in user_specs)
+    return usernames
+
+
 class Command(BaseCommand):
     help = "Populate the database with demo teams, rounds, services, flags, and submissions."
 
@@ -189,8 +200,10 @@ class Command(BaseCommand):
                 member_user_ids = list(
                     TeamMember.objects.values_list("user_id", flat=True)
                 )
+                demo_usernames = build_demo_usernames()
                 TeamMember.objects.all().delete()
                 User.objects.filter(id__in=member_user_ids).delete()
+                User.objects.filter(username__in=demo_usernames).delete()
                 Submission.objects.all().delete()
                 ServiceStatus.objects.all().delete()
                 Flag.objects.all().delete()

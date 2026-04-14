@@ -1,16 +1,17 @@
 @use "../abstracts" as *;
 
 .app-shell {
+  position: sticky;
+  top: 12px;
+  z-index: 10;
   display: grid;
-  gap: 16px;
-  margin-bottom: 18px;
-  padding: 24px 28px;
+  gap: 14px;
+  padding: 18px;
   border: 1px solid var(--line);
   border-radius: $radius-panel;
-  background:
-    radial-gradient(circle at top left, rgba(244, 182, 95, 0.18), transparent 42%),
-    linear-gradient(135deg, rgba(13, 35, 53, 0.92), rgba(8, 20, 33, 0.96));
+  background: rgba(17, 19, 17, 0.94);
   box-shadow: var(--shadow);
+  animation: fade-up 420ms ease both;
 }
 
 .app-shell__top {
@@ -38,7 +39,8 @@
 
 .app-shell__title {
   margin: 0;
-  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-size: 1.8rem;
+  letter-spacing: 0;
 }
 
 .app-shell__session {
@@ -76,14 +78,14 @@
 .app-shell__language-button {
   padding: 8px 12px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 6px;
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
   transition: 160ms ease;
 
   &--active {
-    background: rgba(244, 182, 95, 0.18);
+    background: rgba(114, 214, 139, 0.16);
     color: var(--text-main);
   }
 }
@@ -104,8 +106,38 @@
 
   &:hover,
   &.router-link-active {
-    border-color: rgba(244, 182, 95, 0.35);
-    background: rgba(244, 182, 95, 0.12);
+    border-color: rgba(114, 214, 139, 0.36);
+    background: rgba(114, 214, 139, 0.1);
     color: var(--text-main);
+  }
+}
+
+@media (max-width: $bp-tablet) {
+  .app-shell__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-shell__controls,
+  .app-shell__language,
+  .app-shell__session {
+    width: 100%;
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .app-shell {
+    padding: 20px;
+  }
+
+  .app-shell__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell__link {
+    text-align: center;
   }
 }

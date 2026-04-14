@@ -7,11 +7,29 @@
   margin-top: 18px;
 }
 
+.workspace__panel {
+  display: grid;
+  gap: 16px;
+}
+
+.workspace__panel-header {
+  @include flex-between(flex-start);
+  gap: 16px;
+}
+
+.workspace__panel-copy,
+.workspace__summary {
+  display: grid;
+}
+
+.workspace__panel-copy {
+  gap: 6px;
+}
+
 .workspace__summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 14px;
 }
 
 .workspace__summary-card,
@@ -19,6 +37,38 @@
 .workspace__tool-card,
 .workspace__activity-item {
   @include soft-surface($radius-item);
+}
+
+.workspace__form,
+.workspace__fields {
+  display: grid;
+}
+
+.workspace__form {
+  gap: 14px;
+}
+
+.workspace__fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workspace__panel-kicker {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+}
+
+.workspace__panel-title {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+.workspace__panel-note {
+  color: var(--text-muted);
+  font-size: 0.86rem;
 }
 
 .workspace__summary-card,
@@ -106,6 +156,14 @@
   gap: 14px;
 }
 
+.workspace__empty {
+  padding: 14px 16px;
+  border: 1px dashed $line-subtle;
+  border-radius: $radius-pill;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
 .workspace__activity-item {
   padding: 16px;
 }
@@ -113,8 +171,37 @@
 .workspace__activity-topline,
 .workspace__activity-meta {
   @include flex-between;
+  flex-wrap: wrap;
 }
 
 .workspace__activity-topline {
   margin-bottom: 10px;
+}
+
+@media (max-width: $bp-tablet) {
+  .workspace,
+  .workspace__summary,
+  .workspace__tools,
+  .workspace__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .workspace__panel-header,
+  .workspace__section-head,
+  .workspace__member,
+  .workspace__activity-topline,
+  .workspace__activity-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workspace__member-side {
+    justify-items: start;
+  }
+
+  .workspace__member-actions {
+    justify-content: flex-start;
+  }
 }

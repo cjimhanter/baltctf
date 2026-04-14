@@ -49,13 +49,54 @@ const { t } = useI18n();
 
 <template>
   <section class="guest-access">
-    <article class="panel-card guest-access__panel guest-access__panel--reservation">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("guest.reservationKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("guest.reservationTitle") }}</h2>
+    <div class="guest-access__intro">
+      <p class="guest-access__panel-kicker">{{ t("guest.accessKicker") }}</p>
+      <h2 class="guest-access__panel-title">{{ t("guest.accessTitle") }}</h2>
+      <p>{{ t("guest.accessCopy") }}</p>
+    </div>
+
+    <article class="panel-card guest-access__panel guest-access__panel--login">
+      <div class="guest-access__panel-header">
+        <div class="guest-access__panel-copy">
+          <p class="guest-access__panel-kicker">{{ t("guest.authKicker") }}</p>
+          <h2 class="guest-access__panel-title">{{ t("guest.signInTitle") }}</h2>
         </div>
-        <span class="panel-card__note">
+      </div>
+
+      <form class="guest-access__form guest-access__form--login" @submit.prevent="emit('login')">
+        <label class="field">
+          <span class="field__label">{{ t("guest.username") }}</span>
+          <input
+            v-model="loginForm.username"
+            class="field__control"
+            type="text"
+            autocomplete="username"
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">{{ t("guest.password") }}</span>
+          <input
+            v-model="loginForm.password"
+            class="field__control"
+            type="password"
+            autocomplete="current-password"
+          />
+        </label>
+
+        <button class="button" type="submit" :disabled="isAuthLoading">
+          {{ isAuthLoading ? t("guest.signingIn") : t("guest.signIn") }}
+        </button>
+      </form>
+    </article>
+
+    <article class="panel-card guest-access__panel guest-access__panel--reservation">
+      <div class="guest-access__panel-header">
+        <div class="guest-access__panel-copy">
+          <p class="guest-access__panel-kicker">{{ t("guest.reservationKicker") }}</p>
+          <h2 class="guest-access__panel-title">{{ t("guest.reservationTitle") }}</h2>
+        </div>
+        <span class="guest-access__panel-note">
           {{
             registrationSettings.registration_available
               ? t("guest.windowOpen")
@@ -64,8 +105,8 @@ const { t } = useI18n();
         </span>
       </div>
 
-      <div class="guest-access__status-note">
-        <p>
+      <div class="guest-access__status-card">
+        <p class="guest-access__status-copy">
           {{
             registrationSettings.reservation_required_for_registration
               ? t("guest.reservationRequired")
@@ -74,8 +115,8 @@ const { t } = useI18n();
         </p>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('reserve-team-name')">
-        <div class="field-grid">
+      <form class="guest-access__form" @submit.prevent="emit('reserve-team-name')">
+        <div class="guest-access__fields">
           <label class="field">
             <span class="field__label">{{ t("guest.teamName") }}</span>
             <input v-model="reservationForm.team_name" class="field__control" type="text" />
@@ -119,63 +160,31 @@ const { t } = useI18n();
       </form>
     </article>
 
-    <article class="panel-card guest-access__panel guest-access__panel--login">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("guest.authKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("guest.signInTitle") }}</h2>
-        </div>
-      </div>
-
-      <form class="form-stack" @submit.prevent="emit('login')">
-        <label class="field">
-          <span class="field__label">{{ t("guest.username") }}</span>
-          <input
-            v-model="loginForm.username"
-            class="field__control"
-            type="text"
-            autocomplete="username"
-          />
-        </label>
-
-        <label class="field">
-          <span class="field__label">{{ t("guest.password") }}</span>
-          <input
-            v-model="loginForm.password"
-            class="field__control"
-            type="password"
-            autocomplete="current-password"
-          />
-        </label>
-
-        <button class="button" type="submit" :disabled="isAuthLoading">
-          {{ isAuthLoading ? t("guest.signingIn") : t("guest.signIn") }}
-        </button>
-      </form>
-    </article>
-
     <article class="panel-card guest-access__panel guest-access__panel--register">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("guest.registrationKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("guest.createTeamTitle") }}</h2>
+      <div class="guest-access__panel-header">
+        <div class="guest-access__panel-copy">
+          <p class="guest-access__panel-kicker">{{ t("guest.registrationKicker") }}</p>
+          <h2 class="guest-access__panel-title">{{ t("guest.createTeamTitle") }}</h2>
         </div>
-        <span class="panel-card__note">
+        <span class="guest-access__panel-note">
           {{ t("guest.maxMembers", { count: maxTeamMembers }) }}
         </span>
       </div>
 
-      <div class="guest-access__status-note">
-        <p v-if="!registrationSettings.registration_available">
+      <div class="guest-access__status-card">
+        <p v-if="!registrationSettings.registration_available" class="guest-access__status-copy">
           {{ t("guest.registrationClosedHint") }}
         </p>
-        <p v-else-if="registrationSettings.reservation_required_for_registration">
+        <p
+          v-else-if="registrationSettings.reservation_required_for_registration"
+          class="guest-access__status-copy"
+        >
           {{ t("guest.reservationTokenRequiredHint") }}
         </p>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('register')">
-        <div class="field-grid">
+      <form class="guest-access__form" @submit.prevent="emit('register')">
+        <div class="guest-access__fields">
           <label class="field">
             <span class="field__label">{{ t("guest.teamName") }}</span>
             <input v-model="registerForm.team_name" class="field__control" type="text" />
@@ -207,12 +216,12 @@ const { t } = useI18n();
           </label>
         </div>
 
-        <div class="guest-access__subsection">
-          <div class="guest-access__subsection-head">
-            <h3 class="guest-access__subsection-title">{{ t("guest.captain") }}</h3>
+        <div class="guest-access__section guest-access__section--captain">
+          <div class="guest-access__section-head">
+            <h3 class="guest-access__section-title">{{ t("guest.captain") }}</h3>
           </div>
 
-          <div class="field-grid">
+          <div class="guest-access__fields">
             <label class="field">
               <span class="field__label">{{ t("guest.username") }}</span>
               <input v-model="registerForm.captain.username" class="field__control" type="text" />
@@ -252,13 +261,13 @@ const { t } = useI18n();
           </div>
         </div>
 
-        <div class="guest-access__subsection">
-          <div class="guest-access__subsection-head">
-            <h3 class="guest-access__subsection-title">{{ t("guest.participants") }}</h3>
+        <div class="guest-access__section guest-access__section--participants">
+          <div class="guest-access__section-head">
+            <h3 class="guest-access__section-title">{{ t("guest.participants") }}</h3>
             <button
-              class="button button--ghost"
+              class="button button--ghost guest-access__section-action"
               type="button"
-              :disabled="!canAddParticipant"
+              :disabled="!canAddParticipant || isAuthLoading"
               @click="emit('add-participant')"
             >
               {{ t("guest.addParticipant") }}
@@ -267,7 +276,7 @@ const { t } = useI18n();
 
           <div
             v-if="registerForm.participants.length === 0"
-            class="empty-hint"
+            class="guest-access__empty"
           >
             {{ t("guest.participantsHint") }}
           </div>
@@ -277,12 +286,12 @@ const { t } = useI18n();
             :key="index"
             class="guest-access__participant"
           >
-            <div class="guest-access__participant-head">
+            <div class="guest-access__participant-header">
               <strong class="guest-access__participant-title">
                 {{ t("guest.playerLabel", { index: index + 1 }) }}
               </strong>
               <button
-                class="button button--ghost button--danger"
+                class="button button--ghost button--danger guest-access__participant-remove"
                 type="button"
                 @click="emit('remove-participant', index)"
               >
@@ -290,7 +299,7 @@ const { t } = useI18n();
               </button>
             </div>
 
-            <div class="field-grid">
+            <div class="guest-access__participant-fields">
               <label class="field">
                 <span class="field__label">{{ t("guest.username") }}</span>
                 <input v-model="participant.username" class="field__control" type="text" />
@@ -320,7 +329,7 @@ const { t } = useI18n();
         </div>
 
         <button
-          class="button"
+          class="button guest-access__submit"
           type="submit"
           :disabled="isAuthLoading || !registrationSettings.registration_available"
         >

@@ -1,4 +1,5 @@
 <script setup>
+import SubmissionHistory from "../dashboard/SubmissionHistory.vue";
 import { useI18n } from "../../i18n";
 
 defineProps({
@@ -68,16 +69,63 @@ const { t } = useI18n();
 
 <template>
   <section class="admin-console">
-    <article class="panel-card admin-console__panel admin-console__panel--wide">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("admin.registrationKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("admin.registrationTitle") }}</h2>
+    <section class="admin-console__overview">
+      <div class="admin-console__overview-copy">
+        <p class="admin-console__panel-kicker">{{ t("admin.overviewKicker") }}</p>
+        <h2 class="admin-console__panel-title">{{ t("admin.overviewTitle") }}</h2>
+        <p>{{ t("admin.overviewMeta") }}</p>
+      </div>
+
+      <div class="admin-console__overview-grid">
+        <a class="admin-console__overview-card" href="#admin-teams">
+          <span>{{ t("admin.teamsKicker") }}</span>
+          <strong>{{ adminState.teams.length }}</strong>
+        </a>
+        <a class="admin-console__overview-card" href="#admin-services">
+          <span>{{ t("admin.servicesKicker") }}</span>
+          <strong>{{ adminState.services.length }}</strong>
+        </a>
+        <a class="admin-console__overview-card" href="#admin-rounds">
+          <span>{{ t("admin.roundsKicker") }}</span>
+          <strong>{{ adminState.rounds.length }}</strong>
+        </a>
+        <a class="admin-console__overview-card" href="#admin-reservations">
+          <span>{{ t("admin.reservationsKicker") }}</span>
+          <strong>{{ adminState.reservations.length }}</strong>
+        </a>
+        <a class="admin-console__overview-card" href="#admin-submissions">
+          <span>{{ t("admin.submissionsKicker") }}</span>
+          <strong>{{ adminState.recent_submissions?.length || 0 }}</strong>
+        </a>
+      </div>
+    </section>
+
+    <nav class="admin-console__section-nav" :aria-label="t('admin.sectionNav')">
+      <a href="#admin-registration">{{ t("admin.registrationKicker") }}</a>
+      <a href="#admin-reservations">{{ t("admin.reservationsKicker") }}</a>
+      <a href="#admin-teams">{{ t("admin.teamsKicker") }}</a>
+      <a href="#admin-services">{{ t("admin.servicesKicker") }}</a>
+      <a href="#admin-rounds">{{ t("admin.roundsKicker") }}</a>
+      <a href="#admin-submissions">{{ t("admin.submissionsKicker") }}</a>
+    </nav>
+
+    <div id="admin-submissions" class="admin-console__panel admin-console__panel--wide">
+      <SubmissionHistory
+        :submissions="adminState.recent_submissions || []"
+        :format-date-time="formatDateTime"
+      />
+    </div>
+
+    <article id="admin-registration" class="panel-card admin-console__panel admin-console__panel--wide">
+      <div class="admin-console__panel-header">
+        <div class="admin-console__panel-copy">
+          <p class="admin-console__panel-kicker">{{ t("admin.registrationKicker") }}</p>
+          <h2 class="admin-console__panel-title">{{ t("admin.registrationTitle") }}</h2>
         </div>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('update-settings')">
-        <div class="field-grid">
+      <form class="admin-console__form" @submit.prevent="emit('update-settings')">
+        <div class="admin-console__fields">
           <label class="field field--checkbox">
             <input v-model="adminSettingsForm.registration_open" type="checkbox" />
             <span class="field__label">{{ t("admin.registrationOpen") }}</span>
@@ -141,15 +189,15 @@ const { t } = useI18n();
       </form>
     </article>
 
-    <article class="panel-card admin-console__panel">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("admin.reservationsKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("admin.reservationsTitle") }}</h2>
+    <article id="admin-reservations" class="panel-card admin-console__panel">
+      <div class="admin-console__panel-header">
+        <div class="admin-console__panel-copy">
+          <p class="admin-console__panel-kicker">{{ t("admin.reservationsKicker") }}</p>
+          <h2 class="admin-console__panel-title">{{ t("admin.reservationsTitle") }}</h2>
         </div>
       </div>
 
-      <div v-if="adminState.reservations.length === 0" class="empty-hint">
+      <div v-if="adminState.reservations.length === 0" class="admin-console__empty">
         {{ t("admin.reservationsEmpty") }}
       </div>
 
@@ -198,16 +246,16 @@ const { t } = useI18n();
       </div>
     </article>
 
-    <article class="panel-card admin-console__panel">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("admin.teamsKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("admin.teamsTitle") }}</h2>
+    <article id="admin-teams" class="panel-card admin-console__panel">
+      <div class="admin-console__panel-header">
+        <div class="admin-console__panel-copy">
+          <p class="admin-console__panel-kicker">{{ t("admin.teamsKicker") }}</p>
+          <h2 class="admin-console__panel-title">{{ t("admin.teamsTitle") }}</h2>
         </div>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('create-team')">
-        <div class="field-grid">
+      <form class="admin-console__form" @submit.prevent="emit('create-team')">
+        <div class="admin-console__fields">
           <label class="field">
             <span class="field__label">{{ t("admin.name") }}</span>
             <input v-model="adminTeamForm.name" class="field__control" type="text" />
@@ -295,16 +343,16 @@ const { t } = useI18n();
       </div>
     </article>
 
-    <article class="panel-card admin-console__panel">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("admin.servicesKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("admin.servicesTitle") }}</h2>
+    <article id="admin-services" class="panel-card admin-console__panel">
+      <div class="admin-console__panel-header">
+        <div class="admin-console__panel-copy">
+          <p class="admin-console__panel-kicker">{{ t("admin.servicesKicker") }}</p>
+          <h2 class="admin-console__panel-title">{{ t("admin.servicesTitle") }}</h2>
         </div>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('create-service')">
-        <div class="field-grid">
+      <form class="admin-console__form" @submit.prevent="emit('create-service')">
+        <div class="admin-console__fields">
           <label class="field">
             <span class="field__label">{{ t("admin.name") }}</span>
             <input v-model="adminServiceForm.name" class="field__control" type="text" />
@@ -365,18 +413,18 @@ const { t } = useI18n();
       </div>
     </article>
 
-    <article class="panel-card admin-console__panel admin-console__panel--wide">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">{{ t("admin.roundsKicker") }}</p>
-          <h2 class="panel-card__title">{{ t("admin.roundsTitle") }}</h2>
+    <article id="admin-rounds" class="panel-card admin-console__panel admin-console__panel--wide">
+      <div class="admin-console__panel-header">
+        <div class="admin-console__panel-copy">
+          <p class="admin-console__panel-kicker">{{ t("admin.roundsKicker") }}</p>
+          <h2 class="admin-console__panel-title">{{ t("admin.roundsTitle") }}</h2>
         </div>
-        <span class="panel-card__note">
+        <span class="admin-console__panel-note">
           {{ t("admin.nextSuggestedRound", { number: adminState.next_round_number }) }}
         </span>
       </div>
 
-      <form class="form-stack" @submit.prevent="emit('create-round')">
+      <form class="admin-console__form" @submit.prevent="emit('create-round')">
         <div class="admin-console__checker">
           <div class="admin-console__checker-copy">
             <strong class="admin-console__checker-title">
@@ -419,7 +467,7 @@ const { t } = useI18n();
           </article>
         </div>
 
-        <div class="field-grid">
+        <div class="admin-console__fields">
           <label class="field">
             <span class="field__label">{{ t("admin.roundNumber") }}</span>
             <input

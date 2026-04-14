@@ -24,8 +24,8 @@ This repository now contains the first working platform slice. It provides:
 
 - a containerized local development layout
 - Django domain models for teams, participants, services, rounds, flags, service checks, submissions, competition settings, and team name reservations
-- API endpoints for registration windows, team name reservations, authentication, moderation, round scheduling, dashboard data, service status, and flag submission
-- a Vue frontend with dedicated routes for dashboard, service status, team profile, and admin tools
+- API endpoints for registration windows, team name reservations, authentication, moderation, round scheduling, expanded dashboard stats, service status history, and flag submission history
+- a Vue frontend with dedicated routes for dashboard, full scoreboard, checker/service timeline, team profile, and admin tools
 - frontend styles decomposed with the SCSS 7-1 architecture
 - a checker service that authenticates into the backend and triggers checker ticks for running rounds
 - three intentionally vulnerable demo services used by real service-specific checker modules:
@@ -41,11 +41,13 @@ The Vue frontend now follows a feature-oriented structure:
 
 - `src/components/` - UI blocks split by domain (`access`, `workspace`, `admin`, `dashboard`, `common`)
 - `src/components/services/` - dedicated service status matrix blocks
-- `src/pages/` - route-level pages for dashboard, services, team, and admin
+- `src/pages/` - route-level pages for dashboard, scoreboard, services, team, and admin
 - `src/router/` - `vue-router` configuration
-- `src/composables/useCompetitionPage.js` - shared page-level state, derived data, and API actions
+- `src/composables/useCompetitionPage.js` - orchestration entrypoint that exposes the shared page context used by the routes
+- `src/composables/competitionPage*.js` - split factories, state, derived data, loaders, mutations, auth/team actions, and admin actions
 - `src/i18n.js` - app-wide English/Russian language switch
-- `src/styles/` - SCSS 7-1 architecture with BEM-oriented blocks wired to the Vue components
+- `src/styles/` - SCSS 7-1 architecture with a local vendor normalize layer in `src/styles/vendors/_normalize.scss`
+- `src/test/setup.js` and the `*.spec.js` files - Vitest setup and frontend test coverage for app, pages, and composables
 
 ## Quick Start
 
@@ -70,10 +72,15 @@ The Vue frontend now follows a feature-oriented structure:
    the `checker` container signs in as the admin user and tries to run a checker tick every 60 seconds; if there is no running round yet, it stays idle and logs the reason.
 11. Frontend note:
    the dev container now runs `npm install` on startup so SCSS dependencies stay in sync after frontend package changes.
-12. Backend/checker note:
+12. Frontend test note:
+   run `npm run test:run` inside `frontend/` to execute the Vitest suite configured in `vite.config.js` with the `jsdom` environment.
+13. Frontend package note:
+   when frontend dependencies change, update both `frontend/package.json` and `frontend/package-lock.json` in the same change.
+14. Backend/checker note:
    the Python dev containers now sync `requirements.txt` on startup too, so `docker compose run --rm backend ...` and `docker compose up` keep working after dependency updates.
-13. Frontend routes:
+15. Frontend routes:
    - dashboard: `http://localhost:5173/`
+   - scoreboard: `http://localhost:5173/scoreboard`
    - service matrix: `http://localhost:5173/services`
    - team portal: `http://localhost:5173/team`
    - admin tools: `http://localhost:5173/admin`
@@ -93,10 +100,10 @@ The Vue frontend now follows a feature-oriented structure:
 ## API Endpoints
 
 - `GET /api/health/` - health check
-- `GET /api/summary/` - aggregate counters for the control panel
-- `GET /api/scoreboard/` - ranked teams with points
-- `GET /api/dashboard/` - combined dashboard payload for the frontend
-- `GET /api/service-status/` - current round service matrix
+- `GET /api/summary/` - aggregate counters for the control panel, including attack/defense totals and checker counts
+- `GET /api/scoreboard/` - ranked teams with points, per-team submission/check counts, service stats, and recent submissions
+- `GET /api/dashboard/` - combined dashboard payload with expanded stats, service analytics, checker history, and submission history
+- `GET /api/service-status/` - current round service matrix plus recent checker history by round
 - `GET /api/registration/settings/` - public registration window settings
 - `POST /api/team-reservations/` - request a team name reservation
 - `POST /api/auth/register/` - team registration with captain and optional participants
@@ -130,4 +137,4 @@ The Vue frontend now follows a feature-oriented structure:
 1. Move the service-specific checker logic from synchronous backend requests into a dedicated worker pipeline with retries and round deadlines.
 2. Replace in-memory demo vulnboxes with per-team isolated containers or VM-backed services.
 3. Add end-to-end tests that spin up the vulnbox containers and verify checker `put/get` behavior against real HTTP responses.
-4. Split the shared frontend state into domain composables or a small store layer as the operator workflows continue to grow.
+4. Expand the Vitest suite with additional route and integration-style coverage as operator workflows continue to grow.

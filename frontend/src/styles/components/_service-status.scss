@@ -5,6 +5,38 @@
   margin-top: 18px;
 }
 
+.status-matrix__summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.status-matrix__summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: $radius-item;
+  background: rgba(255, 255, 255, 0.02);
+
+  span {
+    color: var(--text-muted);
+  }
+
+  strong {
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+
+  @each $state, $theme in $service-pill-states {
+    &[data-state="#{$state}"] {
+      border-color: map.get($theme, border);
+      background: map.get($theme, background);
+    }
+  }
+}
+
 .status-matrix__table-wrap {
   overflow-x: auto;
 }
@@ -72,5 +104,24 @@
       border-color: map.get($theme, border);
       background: map.get($theme, background);
     }
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .status-matrix__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .status-matrix__table {
+    min-width: 640px;
+  }
+
+  .status-matrix__team-cell {
+    min-width: 150px;
+  }
+
+  .status-matrix__cell {
+    min-width: 150px;
+    padding: 12px;
   }
 }

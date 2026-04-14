@@ -2,46 +2,109 @@
 
 .guest-access {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
   gap: 16px;
   margin-top: 18px;
 }
 
-.guest-access__panel {
-  &--reservation {
-    grid-column: span 3;
-  }
+.guest-access__intro {
+  @include glass-panel;
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  animation: fade-up 420ms ease both;
 
-  &--register {
-    grid-column: span 1;
-  }
-}
-
-.guest-access__status-note {
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border: 1px solid rgba(244, 182, 95, 0.2);
-  border-radius: $radius-pill;
-  background: rgba(244, 182, 95, 0.06);
-
-  p {
+  p:last-child {
+    max-width: 72ch;
     margin: 0;
     color: var(--text-soft);
     line-height: 1.5;
   }
 }
 
-.guest-access__subsection {
+.guest-access__panel {
   display: grid;
+  gap: 16px;
+
+  &--reservation {
+    grid-column: 1;
+  }
+
+  &--register {
+    grid-column: 2;
+    grid-row: span 2;
+  }
+}
+
+.guest-access__panel-header {
+  @include flex-between(flex-start);
+  gap: 16px;
+}
+
+.guest-access__panel-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.guest-access__form,
+.guest-access__section,
+.guest-access__participant {
+  display: grid;
+}
+
+.guest-access__form {
+  gap: 16px;
+}
+
+.guest-access__fields,
+.guest-access__participant-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.guest-access__panel-kicker {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+}
+
+.guest-access__panel-title {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+.guest-access__panel-note {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.guest-access__status-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(225, 184, 102, 0.22);
+  border-radius: $radius-pill;
+  background: rgba(225, 184, 102, 0.07);
+}
+
+.guest-access__status-copy {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.guest-access__section {
   gap: 12px;
   padding-top: 8px;
 }
 
-.guest-access__subsection-head {
+.guest-access__section-head {
   @include flex-between;
 }
 
-.guest-access__subsection-title {
+.guest-access__section-title {
   margin: 0;
   font-size: 0.94rem;
   text-transform: uppercase;
@@ -51,11 +114,48 @@
 
 .guest-access__participant {
   @include soft-surface($radius-item);
-  display: grid;
   gap: 12px;
   padding: 16px;
 }
 
-.guest-access__participant-head {
+.guest-access__participant-header {
   @include flex-between;
+}
+
+.guest-access__participant-title {
+  font-size: 0.96rem;
+}
+
+.guest-access__empty {
+  padding: 14px 16px;
+  border: 1px dashed $line-subtle;
+  border-radius: $radius-pill;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+@media (max-width: $bp-tablet) {
+  .guest-access,
+  .guest-access__fields,
+  .guest-access__participant-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-access__panel--reservation {
+    grid-column: auto;
+  }
+
+  .guest-access__panel--register {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .guest-access__panel-header,
+  .guest-access__section-head,
+  .guest-access__participant-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

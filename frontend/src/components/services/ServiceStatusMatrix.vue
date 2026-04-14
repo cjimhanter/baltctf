@@ -9,6 +9,7 @@ defineProps({
 });
 
 const { t } = useI18n();
+const statusKeys = ["up", "mumble", "corrupt", "down", "unknown"];
 </script>
 
 <template>
@@ -31,36 +32,50 @@ const { t } = useI18n();
         {{ t("serviceMatrix.noData") }}
       </div>
 
-      <div v-else class="status-matrix__table-wrap">
-        <table class="status-matrix__table">
-          <thead>
-            <tr>
-              <th>{{ t("serviceMatrix.team") }}</th>
-              <th v-for="service in serviceStatus.services" :key="service.id">
-                {{ service.name }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="entry in serviceStatus.teams" :key="entry.team.id">
-              <td class="status-matrix__team-cell">
-                <strong>{{ entry.team.name }}</strong>
-                <span>{{ entry.team.affiliation || t("common.independent") }}</span>
-              </td>
-              <td v-for="serviceEntry in entry.services" :key="serviceEntry.service.id">
-                <article
-                  class="status-matrix__cell"
-                  :data-state="serviceEntry.status"
-                >
-                  <strong>{{ t(`serviceState.${serviceEntry.status}`) }}</strong>
-                  <small>{{ t("common.points", { count: serviceEntry.points_awarded }) }}</small>
-                  <p>{{ serviceEntry.message || t("common.noCheckerNote") }}</p>
-                </article>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <template v-else>
+        <div class="status-matrix__summary">
+          <article
+            v-for="status in statusKeys"
+            :key="status"
+            class="status-matrix__summary-card"
+            :data-state="status"
+          >
+            <span>{{ t(`serviceState.${status}`) }}</span>
+            <strong>{{ serviceStatus.summary?.status_counts?.[status] || 0 }}</strong>
+          </article>
+        </div>
+
+        <div class="status-matrix__table-wrap">
+          <table class="status-matrix__table">
+            <thead>
+              <tr>
+                <th>{{ t("serviceMatrix.team") }}</th>
+                <th v-for="service in serviceStatus.services" :key="service.id">
+                  {{ service.name }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="entry in serviceStatus.teams" :key="entry.team.id">
+                <td class="status-matrix__team-cell">
+                  <strong>{{ entry.team.name }}</strong>
+                  <span>{{ entry.team.affiliation || t("common.independent") }}</span>
+                </td>
+                <td v-for="serviceEntry in entry.services" :key="serviceEntry.service.id">
+                  <article
+                    class="status-matrix__cell"
+                    :data-state="serviceEntry.status"
+                  >
+                    <strong>{{ t(`serviceState.${serviceEntry.status}`) }}</strong>
+                    <small>{{ t("common.points", { count: serviceEntry.points_awarded }) }}</small>
+                    <p>{{ serviceEntry.message || t("common.noCheckerNote") }}</p>
+                  </article>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
     </article>
   </section>
 </template>

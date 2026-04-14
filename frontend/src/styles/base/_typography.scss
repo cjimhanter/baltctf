@@ -1,7 +1,7 @@
 code {
   padding: 0.2rem 0.45rem;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.22);
   color: var(--accent-strong);
 }
@@ -10,14 +10,14 @@ code {
 .panel-card__title,
 .state-panel__title {
   margin: 0;
-  font-family: "Rockwell", "Bahnschrift", sans-serif;
-  letter-spacing: 0.02em;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  letter-spacing: 0;
 }
 
 .hero__title {
-  font-size: clamp(2.8rem, 6vw, 5.2rem);
-  line-height: 0.94;
-  max-width: 11ch;
+  max-width: 12ch;
+  font-size: 4.25rem;
+  line-height: 0.96;
 }
 
 .panel-card__title,
@@ -49,4 +49,10 @@ code {
 .panel-card__note {
   color: var(--text-muted);
   font-size: 0.86rem;
+}
+
+@media (max-width: 720px) {
+  .hero__title {
+    font-size: 2.75rem;
+  }
 }

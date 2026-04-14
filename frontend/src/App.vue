@@ -14,6 +14,7 @@ const { currentLanguage, setLanguage, t } = useI18n();
 
 const navigationItems = computed(() => [
   { name: "dashboard", label: t("nav.dashboard"), to: "/" },
+  { name: "scoreboard", label: t("nav.scoreboard"), to: "/scoreboard" },
   { name: "services", label: t("nav.services"), to: "/services" },
   { name: "team", label: t("nav.team"), to: "/team" },
   { name: "admin", label: t("nav.admin"), to: "/admin" }
@@ -21,8 +22,8 @@ const navigationItems = computed(() => [
 </script>
 
 <template>
-  <main class="page">
-    <header class="app-shell">
+  <main class="app-layout">
+    <header class="app-shell app-layout__shell">
       <div class="app-shell__top">
         <div class="app-shell__brand">
           <p class="app-shell__eyebrow">{{ t("shell.eyebrow") }}</p>
@@ -49,23 +50,27 @@ const navigationItems = computed(() => [
           <div class="app-shell__session">
             <strong>
               {{
-                page.session.authenticated
-                  ? page.session.user?.username
-                  : t("shell.guestSession")
+                !page.isSessionReady
+                  ? t("shell.restoringSession")
+                  : page.session.authenticated
+                    ? page.session.user?.username
+                    : t("shell.guestSession")
               }}
             </strong>
             <span>
               {{
-                page.session.authenticated
-                  ? page.session.team?.name || t("shell.operatorAccount")
-                  : t("shell.guestHint")
+                !page.isSessionReady
+                  ? t("shell.restoringHint")
+                  : page.session.authenticated
+                    ? page.session.team?.name || t("shell.operatorAccount")
+                    : t("shell.guestHint")
               }}
             </span>
           </div>
         </div>
       </div>
 
-      <nav class="app-shell__nav">
+      <nav class="app-shell__nav" :aria-label="t('shell.navigation')">
         <RouterLink
           v-for="item in navigationItems"
           :key="item.name"
@@ -77,48 +82,52 @@ const navigationItems = computed(() => [
       </nav>
     </header>
 
-    <NoticeBanner
-      v-if="page.apiErrorMessage"
-      :title="t('notice.connection')"
-      :message="page.apiErrorMessage"
-      tone="error"
-    />
+    <section class="app-layout__notices" aria-live="polite">
+      <NoticeBanner
+        v-if="page.apiErrorMessage"
+        :title="t('notice.connection')"
+        :message="page.apiErrorMessage"
+        tone="error"
+      />
 
-    <NoticeBanner
-      v-if="page.authMessage"
-      :title="t('notice.account')"
-      :message="page.authMessage"
-      tone="info"
-    />
+      <NoticeBanner
+        v-if="page.authMessage"
+        :title="t('notice.account')"
+        :message="page.authMessage"
+        tone="info"
+      />
 
-    <NoticeBanner
-      v-if="page.reservationMessage"
-      :title="t('notice.reservation')"
-      :message="page.reservationMessage"
-      tone="team"
-    />
+      <NoticeBanner
+        v-if="page.reservationMessage"
+        :title="t('notice.reservation')"
+        :message="page.reservationMessage"
+        tone="team"
+      />
 
-    <NoticeBanner
-      v-if="page.adminMessage"
-      :title="t('notice.admin')"
-      :message="page.adminMessage"
-      tone="admin"
-    />
+      <NoticeBanner
+        v-if="page.adminMessage"
+        :title="t('notice.admin')"
+        :message="page.adminMessage"
+        tone="admin"
+      />
 
-    <NoticeBanner
-      v-if="page.submissionMessage"
-      :title="t('notice.flag')"
-      :message="page.submissionMessage"
-      tone="subtle"
-    />
+      <NoticeBanner
+        v-if="page.submissionMessage"
+        :title="t('notice.flag')"
+        :message="page.submissionMessage"
+        tone="subtle"
+      />
 
-    <NoticeBanner
-      v-if="page.teamMessage"
-      :title="t('notice.team')"
-      :message="page.teamMessage"
-      tone="team"
-    />
+      <NoticeBanner
+        v-if="page.teamMessage"
+        :title="t('notice.team')"
+        :message="page.teamMessage"
+        tone="team"
+      />
+    </section>
 
-    <RouterView />
+    <section class="app-layout__view">
+      <RouterView />
+    </section>
   </main>
 </template>

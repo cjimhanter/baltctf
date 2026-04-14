@@ -1,4 +1,6 @@
 <script setup>
+import { RouterLink } from "vue-router";
+
 import { useI18n } from "../../i18n";
 
 defineProps({
@@ -28,10 +30,15 @@ const { t } = useI18n();
             <p class="panel-card__kicker">{{ t("board.scoreboardKicker") }}</p>
             <h2 class="panel-card__title">{{ t("board.scoreboardTitle") }}</h2>
           </div>
-          <div v-if="leaderboardLeader" class="board__leader">
-            <span class="board__leader-label">{{ t("board.leader") }}</span>
-            <strong class="board__leader-name">{{ leaderboardLeader.team.name }}</strong>
-          </div>
+          <RouterLink class="button button--ghost" to="/scoreboard">
+            {{ t("board.openScoreboard") }}
+          </RouterLink>
+        </div>
+
+        <div v-if="leaderboardLeader" class="board__leader">
+          <span class="board__leader-label">{{ t("board.leader") }}</span>
+          <strong class="board__leader-name">{{ leaderboardLeader.team.name }}</strong>
+          <span>{{ t("common.points", { count: leaderboardLeader.total_points }) }}</span>
         </div>
 
         <div class="board__table-wrap">

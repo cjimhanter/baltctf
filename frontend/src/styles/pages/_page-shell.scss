@@ -1,0 +1,57 @@
+.page-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.page-shell__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+}
+
+.page-shell__intro {
+  display: grid;
+  gap: 8px;
+}
+
+.page-shell__kicker {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+}
+
+.page-shell__title {
+  margin: 0;
+  font-size: 1.85rem;
+}
+
+.page-shell__meta {
+  max-width: 420px;
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+  text-align: right;
+}
+
+.dashboard-page__content,
+.services-page__content,
+.team-page__content,
+.admin-page__content {
+  display: grid;
+  gap: 18px;
+}
+
+@media (max-width: 720px) {
+  .page-shell__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-shell__meta {
+    max-width: none;
+    text-align: left;
+  }
+}

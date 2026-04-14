@@ -17,6 +17,12 @@
   - approval / reject резервирований
   - создания и пакетного планирования раундов
   - запуска checker tick
+- расширенные payload’ы dashboard/scoreboard/service-status:
+  - attack/defense totals
+  - per-team submission/check counts
+  - service analytics
+  - recent checker history по раундам
+  - recent submission history для dashboard, admin и team workspace
 
 ### Checker
 
@@ -39,9 +45,13 @@
 - используется `vue-router`
 - есть маршруты:
   - `/` — dashboard
+  - `/scoreboard` — полная таблица результатов
   - `/services` — матрица статусов сервисов
   - `/team` — регистрация, логин и профиль команды
   - `/admin` — staff-only инструменты
+- dashboard и scoreboard показывают расширенные attack/defense/service/round stats
+- `/services` дополнительно показывает checker timeline по раундам
+- team workspace и admin console показывают recent submission history
 - стили организованы по `SCSS 7-1 architecture`
 - интерфейс поддерживает переключение языка `English / Русский`
 

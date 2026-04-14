@@ -5,6 +5,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-top: 16px;
+  animation: fade-up 520ms ease 140ms both;
 
   &--five-up {
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -14,6 +15,7 @@
 .metrics__card {
   @include glass-panel;
   padding: 20px 22px;
+  box-shadow: none;
 }
 
 .metrics__label {
@@ -23,7 +25,7 @@
 .metrics__value {
   display: block;
   margin: 8px 0 10px;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: 2.5rem;
   line-height: 1;
 }
 

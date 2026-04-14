@@ -30,6 +30,7 @@ docker compose run --rm backend python manage.py seed_demo_data --reset
 ## Адреса
 
 - frontend dashboard: `http://localhost:5173/`
+- scoreboard: `http://localhost:5173/scoreboard`
 - service matrix: `http://localhost:5173/services`
 - team portal: `http://localhost:5173/team`
 - admin tools: `http://localhost:5173/admin`

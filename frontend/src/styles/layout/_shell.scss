@@ -1,13 +1,28 @@
-#app,
-.page {
-  width: min(1280px, calc(100% - 32px));
-  margin: 0 auto;
-}
-
 #app {
+  width: min(1360px, calc(100% - 32px));
+  margin: 0 auto;
   min-height: 100vh;
 }
 
-.page {
-  padding: 36px 0 72px;
+.app-layout {
+  display: grid;
+  gap: 18px;
+  padding: 24px 0 72px;
+}
+
+.app-layout__notices,
+.app-layout__view {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  #app {
+    width: min(100%, calc(100% - 20px));
+  }
+
+  .app-layout {
+    gap: 16px;
+    padding: 20px 0 40px;
+  }
 }

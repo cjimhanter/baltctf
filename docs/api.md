@@ -5,10 +5,10 @@
 ## Public
 
 - `GET /health/` — healthcheck backend
-- `GET /summary/` — агрегированные счётчики для dashboard
-- `GET /scoreboard/` — таблица результатов
-- `GET /dashboard/` — единый payload для главной страницы
-- `GET /service-status/` — матрица состояний сервисов
+- `GET /summary/` — агрегированные счётчики для dashboard, включая attack/defense totals и checker counts
+- `GET /scoreboard/` — таблица результатов с per-team submission/check counts, service stats и recent submissions
+- `GET /dashboard/` — единый payload для главной страницы: scoreboard, service analytics, checker history и submission history
+- `GET /service-status/` — матрица состояний сервисов текущего раунда и recent checker history по раундам
 - `GET /registration/settings/` — текущее окно регистрации и related settings
 - `POST /team-reservations/` — создать заявку на резервирование имени команды
 
@@ -55,3 +55,11 @@ Authorization: Token <token>
 ```
 
 Frontend дополнительно отправляет `Accept-Language`, чтобы UI и будущая серверная локализация могли работать согласованно.
+
+## Payload notes
+
+- `dashboard.summary` и `/summary/` теперь включают `attack_points_total`, `defense_points_total`, `submission_count`, `rejected_submissions_count`, `checker_status_count`, `acceptance_rate`, `checker_status_breakdown`, `current_round_status_breakdown`, `latest_submission_at` и `latest_checker_report_at`.
+- `dashboard.service_stats` агрегирует по каждому сервису generated flags, accepted submissions, attack points, defense points, checker status counts и uptime percentage.
+- `dashboard.recent_rounds` содержит round-level attack/defense/checker counters для последних раундов.
+- `dashboard.service_status_history` и `service-status.history` показывают checker timeline по раундам: для каждого сервиса есть counts `up/mumble/corrupt/down/unknown`, checked count, issue count, defense points и latest report timestamp.
+- `dashboard.submission_history`, `scoreboard.submission_history`, `admin/state.recent_submissions` и `auth/me.recent_submissions` используют общий submission serializer с submitting team, submitted user, target team, service, round, status, points и timestamps.

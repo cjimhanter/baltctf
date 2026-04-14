@@ -22,6 +22,7 @@ const messages = {
   en: {
     nav: {
       dashboard: "Dashboard",
+      scoreboard: "Scoreboard",
       services: "Service Status",
       team: "Team Profile",
       admin: "Admin Tools"
@@ -32,7 +33,10 @@ const messages = {
       guestSession: "Guest session",
       operatorAccount: "Operator account",
       guestHint: "Use Team Profile for sign-in and registration",
-      language: "Language"
+      restoringSession: "Restoring session",
+      restoringHint: "Checking saved credentials",
+      language: "Language",
+      navigation: "Application navigation"
     },
     notice: {
       connection: "Connection issue.",
@@ -52,6 +56,7 @@ const messages = {
       noCheckerNote: "No checker note.",
       noData: "No data",
       points: "{count} pts",
+      percent: "{count}%",
       membersCount: "{count} member(s)",
       registeredCount: "{count} registered",
       roundLabel: "Round {number}",
@@ -103,6 +108,7 @@ const messages = {
       waitingRound: "Waiting for first round",
       waitingRoundMeta:
         "Create rounds or load demo data to populate the control room.",
+      stateErrorTitle: "Dashboard is temporarily unavailable",
       metrics: {
         teams: "Teams",
         teamsNote: "approved squads currently competing",
@@ -112,8 +118,18 @@ const messages = {
         servicesNote: "demo vulnbox services under monitoring",
         rounds: "Rounds",
         roundsNote: "planned or completed round records",
+        attackPoints: "Attack pts",
+        attackPointsNote: "points from accepted captured flags",
+        defensePoints: "Defense pts",
+        defensePointsNote: "points from checker service results",
         acceptedFlags: "Accepted flags",
-        acceptedFlagsNote: "successful attack submissions"
+        acceptedFlagsNote: "successful attack submissions",
+        rejectedFlags: "Rejected flags",
+        rejectedFlagsNote: "failed or duplicate attempts",
+        checkerChecks: "Checker checks",
+        checkerChecksNote: "recorded team-service checks",
+        acceptanceRate: "Acceptance",
+        acceptanceRateNote: "accepted share of all submissions"
       },
       stateLoading:
         "Loading backend data for the scoreboard, service states, and attack feed.",
@@ -124,6 +140,7 @@ const messages = {
     board: {
       scoreboardKicker: "Scoreboard",
       scoreboardTitle: "Current team ranking",
+      openScoreboard: "Open scoreboard",
       leader: "Leader",
       team: "Team",
       attack: "Attack",
@@ -138,12 +155,33 @@ const messages = {
     },
     timeline: {
       kicker: "Timeline",
-      title: "Recent rounds"
+      title: "Recent rounds",
+      attack: "{count} attack pts",
+      defense: "{count} defense pts",
+      checks: "{count} checks"
+    },
+    serviceTimeline: {
+      kicker: "Checker History",
+      title: "Service timeline by round",
+      noData: "No checker history has been recorded yet.",
+      checked: "{count} checked"
+    },
+    submissionHistory: {
+      kicker: "Submission History",
+      title: "Latest flag submissions",
+      noData: "No submissions have been recorded yet.",
+      team: "Team",
+      service: "Service",
+      status: "Status",
+      points: "Points",
+      time: "Time",
+      player: "by {username}"
     },
     pages: {
       team: {
         kicker: "Team Portal",
         title: "Registration, roster, and flag submission",
+        loading: "Restoring account session and team workspace.",
         registrationOpen: "Registration window is currently open.",
         registrationClosed: "Registration window is currently closed.",
         noTeamTitle: "No team linked to this account",
@@ -154,13 +192,43 @@ const messages = {
         kicker: "Checker Matrix",
         title: "Service health across all approved teams",
         meta: "Live checker feedback for Atlas Board, Signal API, and Cold Storage.",
-        loading: "Loading the latest checker results from the backend."
+        loading: "Loading the latest checker results from the backend.",
+        errorTitle: "Service status is temporarily unavailable"
+      },
+      scoreboard: {
+        kicker: "Scoreboard",
+        title: "Attack and defense standings",
+        metaRound: "Round {number} is {state}. Scores combine accepted attacks and checker defense points.",
+        metaWaiting: "Waiting for a running round or demo data before ranking teams.",
+        loading: "Loading rankings, service posture, and recent activity.",
+        errorTitle: "Scoreboard is temporarily unavailable",
+        emptyTitle: "No ranked teams yet",
+        emptyMessage: "Start a round or seed demo data to populate the scoreboard.",
+        podium: "Top ranked teams",
+        trackedTeams: "Tracked teams",
+        attackPoints: "Attack points",
+        defensePoints: "Defense points",
+        acceptedFlags: "Accepted flags",
+        rejectedFlags: "Rejected flags",
+        checkerChecks: "Checker checks",
+        tableTitle: "Full ranking",
+        serviceColumn: "Service posture",
+        acceptedColumn: "Accepted",
+        checksColumn: "Checks",
+        serviceStatsKicker: "Service analytics",
+        serviceStatsTitle: "Attack and defense by service",
+        uptime: "uptime",
+        serviceFlags: "{count} flags",
+        serviceAttacks: "{count} accepted",
+        serviceDefense: "{count} defense pts",
+        serviceChecks: "{count} checks"
       },
       admin: {
         kicker: "Admin Tools",
         title: "Registration control, moderation, and round orchestration",
         meta:
           "Staff-only workflows for team moderation, reservation approvals, and checker lifecycle.",
+        loading: "Restoring account session and staff permissions.",
         authTitle: "Admin access requires authentication",
         authMessage:
           "Sign in with a staff account to manage registration windows, rounds, and reservations.",
@@ -177,6 +245,9 @@ const messages = {
       team: "Team"
     },
     guest: {
+      accessKicker: "Team Access",
+      accessTitle: "Enter the competition workspace",
+      accessCopy: "Sign in with an existing player account, reserve a team name, or register a new squad while the window is open.",
       reservationKicker: "Registration window",
       reservationTitle: "Reserve a team name",
       windowOpen: "Window open",
@@ -254,12 +325,17 @@ const messages = {
       flagValue: "Flag value",
       submitFlag: "Submit flag",
       teamActivity: "Team activity",
+      submissionHistory: "Submission history",
       noSubmissions: "No submissions yet for this team.",
       activityLine: "{target} via {service}",
       flagDisabled:
         "Flag submission is disabled for non-team accounts. If this is a staff user, the admin console below can be used to create teams and services, prepare new rounds, start or finish them, and generate flags."
     },
     admin: {
+      overviewKicker: "Operator Map",
+      overviewTitle: "Control sections",
+      overviewMeta: "Jump between registration rules, reservations, teams, services, and round operations.",
+      sectionNav: "Admin console sections",
       registrationKicker: "Registration",
       registrationTitle: "Window, approval, and scheduling rules",
       registrationOpen: "Registration open",
@@ -271,6 +347,7 @@ const messages = {
       breakDuration: "Break duration (min)",
       saveSettings: "Save competition settings",
       reservationsKicker: "Reservations",
+      submissionsKicker: "Submissions",
       reservationsTitle: "Approve or reject team names",
       reservationsEmpty: "No pending or recent reservation requests yet.",
       approve: "Approve",
@@ -344,6 +421,7 @@ const messages = {
       roundsScheduled: "Round batch scheduled.",
       reservationApproved: "Reservation approved.",
       reservationRejected: "Reservation rejected.",
+      sessionExpired: "Session expired. Sign in again.",
       authRestoreFailed: "Unable to restore the session.",
       dashboardLoadFailed: "Unable to load the BaltCTF dashboard.",
       servicesLoadFailed: "Unable to load the service status matrix.",
@@ -363,6 +441,7 @@ const messages = {
   ru: {
     nav: {
       dashboard: "Дашборд",
+      scoreboard: "Таблица",
       services: "Статусы сервисов",
       team: "Профиль команды",
       admin: "Админ-инструменты"
@@ -373,7 +452,10 @@ const messages = {
       guestSession: "Гостевая сессия",
       operatorAccount: "Операторский аккаунт",
       guestHint: "Для входа и регистрации откройте раздел профиля команды",
-      language: "Язык"
+      restoringSession: "Восстановление сессии",
+      restoringHint: "Проверяем сохранённые учётные данные",
+      language: "Язык",
+      navigation: "Навигация приложения"
     },
     notice: {
       connection: "Проблема с подключением.",
@@ -393,6 +475,7 @@ const messages = {
       noCheckerNote: "Нет заметки от чекера.",
       noData: "Нет данных",
       points: "{count} очк.",
+      percent: "{count}%",
       membersCount: "{count} участн.",
       registeredCount: "{count} зарегистр.",
       roundLabel: "Раунд {number}",
@@ -444,6 +527,7 @@ const messages = {
       waitingRound: "Ожидание первого раунда",
       waitingRoundMeta:
         "Создайте раунды или загрузите демо-данные, чтобы наполнить панель управления.",
+      stateErrorTitle: "Дашборд временно недоступен",
       metrics: {
         teams: "Команды",
         teamsNote: "одобренные команды в соревновании",
@@ -453,8 +537,18 @@ const messages = {
         servicesNote: "demo vulnbox-сервисы под мониторингом",
         rounds: "Раунды",
         roundsNote: "запланированные и завершённые раунды",
+        attackPoints: "Очки атаки",
+        attackPointsNote: "очки за принятые захваченные флаги",
+        defensePoints: "Очки защиты",
+        defensePointsNote: "очки за результаты checker",
         acceptedFlags: "Принятые флаги",
-        acceptedFlagsNote: "успешные атакующие сабмиты"
+        acceptedFlagsNote: "успешные атакующие сабмиты",
+        rejectedFlags: "Отклонённые флаги",
+        rejectedFlagsNote: "ошибочные или повторные попытки",
+        checkerChecks: "Проверки",
+        checkerChecksNote: "записанные проверки команда-сервис",
+        acceptanceRate: "Принятие",
+        acceptanceRateNote: "доля принятых сабмитов"
       },
       stateLoading:
         "Загружаются scoreboard, статусы сервисов и лента атак.",
@@ -465,6 +559,7 @@ const messages = {
     board: {
       scoreboardKicker: "Таблица результатов",
       scoreboardTitle: "Текущий рейтинг команд",
+      openScoreboard: "Открыть таблицу",
       leader: "Лидер",
       team: "Команда",
       attack: "Атака",
@@ -479,12 +574,33 @@ const messages = {
     },
     timeline: {
       kicker: "Таймлайн",
-      title: "Последние раунды"
+      title: "Последние раунды",
+      attack: "{count} очк. атаки",
+      defense: "{count} очк. защиты",
+      checks: "{count} проверок"
+    },
+    serviceTimeline: {
+      kicker: "История чекера",
+      title: "Статусы сервисов по раундам",
+      noData: "История проверок пока не записана.",
+      checked: "{count} проверено"
+    },
+    submissionHistory: {
+      kicker: "История сабмитов",
+      title: "Последние отправки флагов",
+      noData: "Сабмиты пока не записаны.",
+      team: "Команда",
+      service: "Сервис",
+      status: "Статус",
+      points: "Очки",
+      time: "Время",
+      player: "от {username}"
     },
     pages: {
       team: {
         kicker: "Портал команды",
         title: "Регистрация, состав и отправка флагов",
+        loading: "Восстанавливается сессия аккаунта и рабочее пространство команды.",
         registrationOpen: "Окно регистрации сейчас открыто.",
         registrationClosed: "Окно регистрации сейчас закрыто.",
         noTeamTitle: "К этому аккаунту не привязана команда",
@@ -495,13 +611,43 @@ const messages = {
         kicker: "Матрица чекера",
         title: "Состояние сервисов всех одобренных команд",
         meta: "Живые результаты чекера для Atlas Board, Signal API и Cold Storage.",
-        loading: "Загружаются последние результаты чекера с backend."
+        loading: "Загружаются последние результаты чекера с backend.",
+        errorTitle: "Матрица статусов сервисов временно недоступна"
+      },
+      scoreboard: {
+        kicker: "Таблица результатов",
+        title: "Рейтинг атаки и защиты",
+        metaRound: "Раунд {number}: {state}. Очки складываются из принятых атак и defense-статусов чекера.",
+        metaWaiting: "Ожидаем запущенный раунд или демо-данные, чтобы ранжировать команды.",
+        loading: "Загружаются рейтинг, состояние сервисов и недавняя активность.",
+        errorTitle: "Таблица результатов временно недоступна",
+        emptyTitle: "Пока нет команд в рейтинге",
+        emptyMessage: "Запустите раунд или загрузите демо-данные, чтобы заполнить таблицу.",
+        podium: "Команды в верхней части рейтинга",
+        trackedTeams: "Команды",
+        attackPoints: "Очки атаки",
+        defensePoints: "Очки защиты",
+        acceptedFlags: "Принятые флаги",
+        rejectedFlags: "Отклонённые флаги",
+        checkerChecks: "Проверки checker",
+        tableTitle: "Полный рейтинг",
+        serviceColumn: "Состояние сервисов",
+        acceptedColumn: "Принято",
+        checksColumn: "Проверки",
+        serviceStatsKicker: "Аналитика сервисов",
+        serviceStatsTitle: "Атака и защита по сервисам",
+        uptime: "доступность",
+        serviceFlags: "{count} флагов",
+        serviceAttacks: "{count} принято",
+        serviceDefense: "{count} очк. защиты",
+        serviceChecks: "{count} проверок"
       },
       admin: {
         kicker: "Админ-инструменты",
         title: "Управление регистрацией, модерацией и раундами",
         meta:
           "Сценарии только для staff-пользователей: модерация команд, одобрение резервирований и управление жизненным циклом checker.",
+        loading: "Восстанавливается сессия и staff-права аккаунта.",
         authTitle: "Для доступа к админке нужна авторизация",
         authMessage:
           "Войдите под staff-аккаунтом, чтобы управлять окнами регистрации, раундами и резервированиями.",
@@ -518,6 +664,9 @@ const messages = {
       team: "Команда"
     },
     guest: {
+      accessKicker: "Доступ команды",
+      accessTitle: "Войти в рабочее пространство",
+      accessCopy: "Войдите под аккаунтом игрока, зарезервируйте имя команды или зарегистрируйте новый состав, пока окно открыто.",
       reservationKicker: "Окно регистрации",
       reservationTitle: "Зарезервировать имя команды",
       windowOpen: "Окно открыто",
@@ -595,12 +744,17 @@ const messages = {
       flagValue: "Значение флага",
       submitFlag: "Отправить флаг",
       teamActivity: "Активность команды",
+      submissionHistory: "История сабмитов",
       noSubmissions: "У этой команды пока нет сабмитов.",
       activityLine: "{target} через {service}",
       flagDisabled:
         "Отправка флагов недоступна для аккаунтов без команды. Если это staff-пользователь, используйте админ-консоль ниже для создания команд и сервисов, подготовки новых раундов, их запуска или остановки и генерации флагов."
     },
     admin: {
+      overviewKicker: "Карта оператора",
+      overviewTitle: "Разделы управления",
+      overviewMeta: "Быстрый переход между правилами регистрации, резервированиями, командами, сервисами и раундами.",
+      sectionNav: "Разделы админ-консоли",
       registrationKicker: "Регистрация",
       registrationTitle: "Окна регистрации, правила одобрения и расписание",
       registrationOpen: "Регистрация открыта",
@@ -612,6 +766,7 @@ const messages = {
       breakDuration: "Перерыв между раундами (мин)",
       saveSettings: "Сохранить настройки соревнования",
       reservationsKicker: "Резервирования",
+      submissionsKicker: "Сабмиты",
       reservationsTitle: "Одобрение и отклонение имён команд",
       reservationsEmpty: "Пока нет новых или недавних заявок на резервирование.",
       approve: "Одобрить",
@@ -685,6 +840,7 @@ const messages = {
       roundsScheduled: "Пакет раундов запланирован.",
       reservationApproved: "Резервирование одобрено.",
       reservationRejected: "Резервирование отклонено.",
+      sessionExpired: "Сессия истекла. Войдите заново.",
       authRestoreFailed: "Не удалось восстановить сессию.",
       dashboardLoadFailed: "Не удалось загрузить дашборд BaltCTF.",
       servicesLoadFailed: "Не удалось загрузить матрицу статусов сервисов.",

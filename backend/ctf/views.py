@@ -34,6 +34,14 @@ SUBMISSION_RATE_LIMIT = 10
 SUBMISSION_RATE_WINDOW_SECONDS = 60
 ATTACK_POINTS_PER_FLAG = 25
 MAX_TEAM_MEMBERS = 6
+SERVICE_STATUS_ORDER = [
+    ServiceStatus.Status.UP,
+    ServiceStatus.Status.MUMBLE,
+    ServiceStatus.Status.CORRUPT,
+    ServiceStatus.Status.DOWN,
+]
+SERVICE_STATUS_HISTORY_LIMIT = 6
+SUBMISSION_HISTORY_LIMIT = 12
 
 
 def _json_error(message: str, status: int = 400, **extra):
@@ -139,6 +147,7 @@ def _serialize_service(service: Service) -> dict:
 def _serialize_submission(submission: Submission) -> dict:
     target_team = submission.flag.team if submission.flag_id else None
     target_service = submission.flag.service if submission.flag_id else None
+    target_round = submission.flag.round if submission.flag_id else None
 
     return {
         "id": submission.id,
@@ -178,6 +187,10 @@ def _serialize_submission(submission: Submission) -> dict:
             }
             if target_service
             else None
+        ),
+        "round": _serialize_round(target_round) if target_round else None,
+        "processed_at": (
+            submission.processed_at.isoformat() if submission.processed_at else None
         ),
     }
 
@@ -330,8 +343,103 @@ def _get_team_member_or_404(team: Team, user_id: int):
     return membership
 
 
-def _build_scoreboard(services: list[Service], current_round: Round | None) -> list[dict]:
-    teams = list(_get_active_approved_teams().order_by("name"))
+def _empty_counts(keys: list[str]) -> dict[str, int]:
+    return {key: 0 for key in keys}
+
+
+def _serialize_status_breakdown(
+    rows,
+    keys: list[str],
+    include_unknown: int | None = None,
+) -> dict[str, int]:
+    counts = _empty_counts(keys)
+    for row in rows:
+        counts[row["status"]] = row["count"]
+    if include_unknown is not None:
+        counts["unknown"] = include_unknown
+    return counts
+
+
+def _build_dashboard_summary(current_round: Round | None) -> dict:
+    submission_summary = Submission.objects.aggregate(
+        submission_count=models.Count("id"),
+        accepted_submissions_count=models.Count(
+            "id",
+            filter=models.Q(status=Submission.Status.ACCEPTED),
+        ),
+        rejected_submissions_count=models.Count(
+            "id",
+            filter=models.Q(status=Submission.Status.REJECTED),
+        ),
+        pending_submissions_count=models.Count(
+            "id",
+            filter=models.Q(status=Submission.Status.PENDING),
+        ),
+        attack_points_total=models.Sum(
+            "points_awarded",
+            filter=models.Q(status=Submission.Status.ACCEPTED),
+        ),
+        latest_submission_at=models.Max("submitted_at"),
+    )
+    checker_summary = ServiceStatus.objects.aggregate(
+        checker_status_count=models.Count("id"),
+        defense_points_total=models.Sum("points_awarded"),
+        latest_checker_report_at=models.Max("reported_at"),
+    )
+    status_breakdown = _serialize_status_breakdown(
+        ServiceStatus.objects.values("status").annotate(count=models.Count("id")),
+        SERVICE_STATUS_ORDER,
+    )
+    current_round_status_breakdown = _empty_counts(SERVICE_STATUS_ORDER)
+    if current_round is not None:
+        current_round_status_breakdown = _serialize_status_breakdown(
+            ServiceStatus.objects.filter(round=current_round)
+            .values("status")
+            .annotate(count=models.Count("id")),
+            SERVICE_STATUS_ORDER,
+        )
+
+    submission_count = submission_summary["submission_count"] or 0
+    accepted_count = submission_summary["accepted_submissions_count"] or 0
+
+    return {
+        "team_count": _get_active_approved_teams().count(),
+        "service_count": Service.objects.filter(is_active=True).count(),
+        "round_count": Round.objects.count(),
+        "accepted_submissions_count": accepted_count,
+        "rejected_submissions_count": submission_summary["rejected_submissions_count"] or 0,
+        "pending_submissions_count": submission_summary["pending_submissions_count"] or 0,
+        "submission_count": submission_count,
+        "registered_users_count": TeamMember.objects.count(),
+        "attack_points_total": submission_summary["attack_points_total"] or 0,
+        "defense_points_total": checker_summary["defense_points_total"] or 0,
+        "checker_status_count": checker_summary["checker_status_count"] or 0,
+        "acceptance_rate": (
+            round((accepted_count / submission_count) * 100)
+            if submission_count
+            else 0
+        ),
+        "checker_status_breakdown": status_breakdown,
+        "current_round_status_breakdown": current_round_status_breakdown,
+        "latest_submission_at": (
+            submission_summary["latest_submission_at"].isoformat()
+            if submission_summary["latest_submission_at"]
+            else None
+        ),
+        "latest_checker_report_at": (
+            checker_summary["latest_checker_report_at"].isoformat()
+            if checker_summary["latest_checker_report_at"]
+            else None
+        ),
+    }
+
+
+def _build_scoreboard(
+    services: list[Service],
+    current_round: Round | None,
+    teams: list[Team] | None = None,
+) -> list[dict]:
+    teams = teams if teams is not None else list(_get_active_approved_teams().order_by("name"))
 
     attack_totals = {
         row["submitting_team_id"]: row["total"] or 0
@@ -339,25 +447,85 @@ def _build_scoreboard(services: list[Service], current_round: Round | None) -> l
         .values("submitting_team_id")
         .annotate(total=models.Sum("points_awarded"))
     }
+    submission_stats: dict[int, dict] = {}
+    for row in (
+        Submission.objects.values("submitting_team_id", "status")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+        )
+        .order_by()
+    ):
+        team_stats = submission_stats.setdefault(
+            row["submitting_team_id"],
+            {
+                "submission_count": 0,
+                "accepted_submission_count": 0,
+                "rejected_submission_count": 0,
+                "pending_submission_count": 0,
+            },
+        )
+        status = row["status"]
+        team_stats["submission_count"] += row["count"]
+        team_stats[f"{status}_submission_count"] = row["count"]
+
     defense_totals = {
         row["team_id"]: row["total"] or 0
         for row in ServiceStatus.objects.values("team_id").annotate(total=models.Sum("points_awarded"))
     }
+    defense_check_counts = {
+        row["team_id"]: row["count"]
+        for row in ServiceStatus.objects.values("team_id").annotate(count=models.Count("id"))
+    }
 
     status_map: dict[tuple[int, int], ServiceStatus] = {}
+    current_round_team_stats: dict[int, dict] = {}
     if current_round is not None:
-        status_map = {
-            (status_entry.team_id, status_entry.service_id): status_entry
-            for status_entry in ServiceStatus.objects.filter(round=current_round).select_related(
+        current_status_entries = list(
+            ServiceStatus.objects.filter(round=current_round).select_related(
                 "team",
                 "service",
             )
+        )
+        status_map = {
+            (status_entry.team_id, status_entry.service_id): status_entry
+            for status_entry in current_status_entries
         }
+        for status_entry in current_status_entries:
+            team_stats = current_round_team_stats.setdefault(
+                status_entry.team_id,
+                {
+                    "status_counts": _empty_counts(SERVICE_STATUS_ORDER),
+                    "checked_count": 0,
+                    "defense_points": 0,
+                },
+            )
+            team_stats["status_counts"][status_entry.status] += 1
+            team_stats["checked_count"] += 1
+            team_stats["defense_points"] += status_entry.points_awarded
 
     scoreboard = []
     for team in teams:
         attack_points = attack_totals.get(team.id, 0)
         defense_points = defense_totals.get(team.id, 0)
+        team_submission_stats = submission_stats.get(
+            team.id,
+            {
+                "submission_count": 0,
+                "accepted_submission_count": 0,
+                "rejected_submission_count": 0,
+                "pending_submission_count": 0,
+            },
+        )
+        current_team_stats = current_round_team_stats.get(
+            team.id,
+            {
+                "status_counts": _empty_counts(SERVICE_STATUS_ORDER),
+                "checked_count": 0,
+                "defense_points": 0,
+            },
+        )
+        unknown_count = max(len(services) - current_team_stats["checked_count"], 0)
         service_breakdown = []
 
         for service in services:
@@ -378,6 +546,29 @@ def _build_scoreboard(services: list[Service], current_round: Round | None) -> l
                 "attack_points": attack_points,
                 "defense_points": defense_points,
                 "total_points": attack_points + defense_points,
+                "submission_count": team_submission_stats["submission_count"],
+                "accepted_submission_count": team_submission_stats[
+                    "accepted_submission_count"
+                ],
+                "rejected_submission_count": team_submission_stats[
+                    "rejected_submission_count"
+                ],
+                "pending_submission_count": team_submission_stats[
+                    "pending_submission_count"
+                ],
+                "defense_check_count": defense_check_counts.get(team.id, 0),
+                "current_round_defense_points": current_team_stats["defense_points"],
+                "service_health": {
+                    **current_team_stats["status_counts"],
+                    "unknown": unknown_count,
+                    "checked_count": current_team_stats["checked_count"],
+                    "issue_count": (
+                        current_team_stats["status_counts"][ServiceStatus.Status.MUMBLE]
+                        + current_team_stats["status_counts"][ServiceStatus.Status.CORRUPT]
+                        + current_team_stats["status_counts"][ServiceStatus.Status.DOWN]
+                        + unknown_count
+                    ),
+                },
                 "service_breakdown": service_breakdown,
             }
         )
@@ -397,36 +588,239 @@ def _build_scoreboard(services: list[Service], current_round: Round | None) -> l
     return scoreboard
 
 
+def _build_service_stats(services: list[Service]) -> list[dict]:
+    service_ids = [service.id for service in services]
+    service_stats = {
+        service.id: {
+            "service": _serialize_service(service),
+            "flag_count": 0,
+            "accepted_submission_count": 0,
+            "attack_points": 0,
+            "defense_points": 0,
+            "checker_status_count": 0,
+            "status_counts": _empty_counts(SERVICE_STATUS_ORDER),
+            "uptime_percent": 0,
+        }
+        for service in services
+    }
+
+    if not service_ids:
+        return []
+
+    for row in (
+        Flag.objects.filter(service_id__in=service_ids)
+        .values("service_id")
+        .annotate(count=models.Count("id"))
+    ):
+        service_stats[row["service_id"]]["flag_count"] = row["count"]
+
+    for row in (
+        Submission.objects.filter(
+            status=Submission.Status.ACCEPTED,
+            flag__service_id__in=service_ids,
+        )
+        .values("flag__service_id")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+        )
+    ):
+        service_stats[row["flag__service_id"]]["accepted_submission_count"] = row[
+            "count"
+        ]
+        service_stats[row["flag__service_id"]]["attack_points"] = row["total"] or 0
+
+    for row in (
+        ServiceStatus.objects.filter(service_id__in=service_ids)
+        .values("service_id", "status")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+        )
+    ):
+        stats = service_stats[row["service_id"]]
+        stats["status_counts"][row["status"]] = row["count"]
+        stats["checker_status_count"] += row["count"]
+        stats["defense_points"] += row["total"] or 0
+
+    for stats in service_stats.values():
+        checks = stats["checker_status_count"]
+        stats["uptime_percent"] = (
+            round((stats["status_counts"][ServiceStatus.Status.UP] / checks) * 100)
+            if checks
+            else 0
+        )
+
+    return list(service_stats.values())
+
+
+def _build_round_stats(
+    services: list[Service],
+    teams: list[Team],
+    limit: int = SERVICE_STATUS_HISTORY_LIMIT,
+) -> list[dict]:
+    rounds = list(Round.objects.order_by("-number")[:limit])
+    if not rounds:
+        return []
+
+    round_ids = [round_obj.id for round_obj in rounds]
+    expected_checks = len(services) * len(teams)
+    round_stats = {
+        round_obj.id: {
+            **_serialize_round(round_obj),
+            "accepted_submission_count": 0,
+            "attack_points": 0,
+            "defense_points": 0,
+            "checker_status_count": 0,
+            "status_counts": _empty_counts(SERVICE_STATUS_ORDER),
+        }
+        for round_obj in rounds
+    }
+
+    for row in (
+        Submission.objects.filter(
+            status=Submission.Status.ACCEPTED,
+            flag__round_id__in=round_ids,
+        )
+        .values("flag__round_id")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+        )
+    ):
+        stats = round_stats[row["flag__round_id"]]
+        stats["accepted_submission_count"] = row["count"]
+        stats["attack_points"] = row["total"] or 0
+
+    for row in (
+        ServiceStatus.objects.filter(round_id__in=round_ids)
+        .values("round_id", "status")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+        )
+    ):
+        stats = round_stats[row["round_id"]]
+        stats["status_counts"][row["status"]] = row["count"]
+        stats["checker_status_count"] += row["count"]
+        stats["defense_points"] += row["total"] or 0
+
+    for stats in round_stats.values():
+        stats["unknown_status_count"] = max(
+            expected_checks - stats["checker_status_count"],
+            0,
+        )
+
+    return list(round_stats.values())
+
+
+def _build_service_status_history(
+    services: list[Service],
+    teams: list[Team],
+    limit: int = SERVICE_STATUS_HISTORY_LIMIT,
+) -> list[dict]:
+    rounds = list(Round.objects.order_by("-number")[:limit])
+    if not rounds:
+        return []
+
+    round_ids = [round_obj.id for round_obj in rounds]
+    expected_checks_per_service = len(teams)
+    service_history = {
+        (round_obj.id, service.id): {
+            "service": _serialize_service(service),
+            "status_counts": _empty_counts(SERVICE_STATUS_ORDER),
+            "unknown": expected_checks_per_service,
+            "checked_count": 0,
+            "defense_points": 0,
+            "latest_reported_at": None,
+        }
+        for round_obj in rounds
+        for service in services
+    }
+
+    for row in (
+        ServiceStatus.objects.filter(round_id__in=round_ids)
+        .values("round_id", "service_id", "status")
+        .annotate(
+            count=models.Count("id"),
+            total=models.Sum("points_awarded"),
+            latest_reported_at=models.Max("reported_at"),
+        )
+    ):
+        stats = service_history[(row["round_id"], row["service_id"])]
+        stats["status_counts"][row["status"]] = row["count"]
+        stats["checked_count"] += row["count"]
+        stats["defense_points"] += row["total"] or 0
+        latest_reported_at = row["latest_reported_at"]
+        if latest_reported_at and (
+            stats["latest_reported_at"] is None
+            or latest_reported_at > stats["latest_reported_at"]
+        ):
+            stats["latest_reported_at"] = latest_reported_at
+
+    history = []
+    for round_obj in rounds:
+        round_services = []
+        for service in services:
+            stats = service_history[(round_obj.id, service.id)]
+            stats["unknown"] = max(
+                expected_checks_per_service - stats["checked_count"],
+                0,
+            )
+            stats["status_counts"]["unknown"] = stats["unknown"]
+            stats["issue_count"] = (
+                stats["status_counts"][ServiceStatus.Status.MUMBLE]
+                + stats["status_counts"][ServiceStatus.Status.CORRUPT]
+                + stats["status_counts"][ServiceStatus.Status.DOWN]
+                + stats["unknown"]
+            )
+            stats["latest_reported_at"] = (
+                stats["latest_reported_at"].isoformat()
+                if stats["latest_reported_at"]
+                else None
+            )
+            round_services.append(stats)
+
+        history.append(
+            {
+                "round": _serialize_round(round_obj),
+                "services": round_services,
+            }
+        )
+
+    return history
+
+
 def _build_dashboard_payload() -> dict:
     services = list(Service.objects.filter(is_active=True))
+    teams = list(_get_active_approved_teams().order_by("name"))
     current_round = _get_current_round()
-    recent_rounds = list(Round.objects.order_by("-number")[:5])
+    recent_rounds = _build_round_stats(services, teams, limit=5)
     recent_activity = list(
         Submission.objects.select_related(
             "submitted_by",
             "submitting_team",
             "flag__team",
             "flag__service",
-        )[:8]
+            "flag__round",
+        )[:SUBMISSION_HISTORY_LIMIT]
     )
+    service_status_history = _build_service_status_history(services, teams)
 
-    scoreboard = _build_scoreboard(services, current_round)
+    scoreboard = _build_scoreboard(services, current_round, teams=teams)
 
     return {
-        "summary": {
-            "team_count": _get_active_approved_teams().count(),
-            "service_count": len(services),
-            "round_count": Round.objects.count(),
-            "accepted_submissions_count": Submission.objects.filter(
-                status=Submission.Status.ACCEPTED
-            ).count(),
-            "registered_users_count": TeamMember.objects.count(),
-        },
+        "summary": _build_dashboard_summary(current_round),
         "current_round": _serialize_round(current_round),
         "services": [_serialize_service(service) for service in services],
+        "service_stats": _build_service_stats(services),
         "scoreboard": scoreboard,
-        "recent_rounds": [_serialize_round(round_obj) for round_obj in recent_rounds],
+        "recent_rounds": recent_rounds,
         "recent_activity": [_serialize_submission(submission) for submission in recent_activity],
+        "submission_history": [
+            _serialize_submission(submission) for submission in recent_activity
+        ],
+        "service_status_history": service_status_history,
     }
 
 
@@ -436,18 +830,43 @@ def _build_service_status_payload() -> dict:
     teams = list(_get_active_approved_teams().order_by("name"))
 
     status_map: dict[tuple[int, int], ServiceStatus] = {}
+    latest_reported_at = None
     if current_round:
-        status_map = {
-            (status_entry.team_id, status_entry.service_id): status_entry
-            for status_entry in ServiceStatus.objects.filter(round=current_round).select_related(
+        current_status_entries = list(
+            ServiceStatus.objects.filter(round=current_round).select_related(
                 "team",
                 "service",
             )
+        )
+        status_map = {
+            (status_entry.team_id, status_entry.service_id): status_entry
+            for status_entry in current_status_entries
         }
+        latest_reported_at = (
+            max((status.reported_at for status in current_status_entries), default=None)
+        )
+    current_status_counts = _empty_counts(SERVICE_STATUS_ORDER)
+    for status_entry in status_map.values():
+        current_status_counts[status_entry.status] += 1
+    expected_status_count = len(teams) * len(services)
+    checked_status_count = sum(current_status_counts.values())
+    unknown_status_count = max(expected_status_count - checked_status_count, 0)
 
     return {
         "current_round": _serialize_round(current_round),
         "services": [_serialize_service(service) for service in services],
+        "summary": {
+            "expected_status_count": expected_status_count,
+            "checked_status_count": checked_status_count,
+            "unknown_status_count": unknown_status_count,
+            "status_counts": {
+                **current_status_counts,
+                "unknown": unknown_status_count,
+            },
+            "latest_reported_at": (
+                latest_reported_at.isoformat() if latest_reported_at else None
+            ),
+        },
         "teams": [
             {
                 "team": _serialize_team(team),
@@ -474,12 +893,18 @@ def _build_service_status_payload() -> dict:
                             if (team.id, service.id) in status_map
                             else ""
                         ),
+                        "reported_at": (
+                            status_map[(team.id, service.id)].reported_at.isoformat()
+                            if (team.id, service.id) in status_map
+                            else None
+                        ),
                     }
                     for service in services
                 ],
             }
             for team in teams
         ],
+        "history": _build_service_status_history(services, teams),
     }
 
 
@@ -508,6 +933,15 @@ def _build_admin_state_payload() -> dict:
         ).order_by("-number")
     )
     reservations = list(TeamReservation.objects.order_by("status", "-created_at")[:20])
+    recent_submissions = list(
+        Submission.objects.select_related(
+            "submitted_by",
+            "submitting_team",
+            "flag__team",
+            "flag__service",
+            "flag__round",
+        )[:SUBMISSION_HISTORY_LIMIT]
+    )
     current_round = Round.objects.filter(state=Round.State.RUNNING).order_by("-number").first()
     current_status_summary = {}
     latest_checker_report_at = None
@@ -532,6 +966,9 @@ def _build_admin_state_payload() -> dict:
         "reservations": [_serialize_team_reservation(reservation) for reservation in reservations],
         "services": [_serialize_admin_service(service) for service in services],
         "rounds": [_serialize_admin_round(round_obj) for round_obj in rounds],
+        "recent_submissions": [
+            _serialize_submission(submission) for submission in recent_submissions
+        ],
         "current_round": _serialize_round(_get_current_round()),
         "current_status_summary": current_status_summary,
         "latest_checker_report_at": (
@@ -571,8 +1008,9 @@ def _build_auth_payload(user) -> dict:
             "submitting_team",
             "flag__team",
             "flag__service",
+            "flag__round",
         )
-        .filter(submitting_team=membership.team)[:6]
+        .filter(submitting_team=membership.team)[:SUBMISSION_HISTORY_LIMIT]
     )
 
     return {
@@ -853,7 +1291,12 @@ def scoreboard(request):
     return JsonResponse(
         {
             "current_round": payload["current_round"],
+            "summary": payload["summary"],
+            "services": payload["services"],
+            "service_stats": payload["service_stats"],
+            "recent_rounds": payload["recent_rounds"],
             "scoreboard": payload["scoreboard"],
+            "submission_history": payload["submission_history"],
         }
     )
 

@@ -44,3 +44,14 @@
 .round-timeline__state {
   margin: 6px 0;
 }
+
+@media (max-width: $bp-mobile) {
+  .round-timeline__track {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .round-timeline__card {
+    min-width: 0;
+  }
+}

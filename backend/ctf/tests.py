@@ -2,6 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -135,6 +136,10 @@ class DashboardApiTests(BaseApiTestCase):
         self.assertEqual(payload["accepted_submissions_count"], 1)
         self.assertEqual(payload["registered_users_count"], 2)
         self.assertEqual(payload["current_round_number"], 7)
+        self.assertEqual(payload["attack_points_total"], 25)
+        self.assertEqual(payload["defense_points_total"], 15)
+        self.assertEqual(payload["checker_status_count"], 2)
+        self.assertEqual(payload["acceptance_rate"], 100)
 
     def test_scoreboard_endpoint_orders_by_total_points(self):
         response = self.client.get(reverse("scoreboard"))
@@ -147,8 +152,13 @@ class DashboardApiTests(BaseApiTestCase):
         self.assertEqual(payload["scoreboard"][0]["total_points"], 30)
         self.assertEqual(payload["scoreboard"][0]["attack_points"], 25)
         self.assertEqual(payload["scoreboard"][0]["defense_points"], 5)
+        self.assertEqual(payload["scoreboard"][0]["accepted_submission_count"], 1)
+        self.assertEqual(payload["scoreboard"][0]["defense_check_count"], 1)
+        self.assertEqual(payload["scoreboard"][0]["service_health"]["mumble"], 1)
         self.assertEqual(payload["scoreboard"][1]["team"]["slug"], "red-team")
         self.assertEqual(payload["scoreboard"][1]["service_breakdown"][0]["status"], "up")
+        self.assertEqual(payload["summary"]["attack_points_total"], 25)
+        self.assertEqual(payload["service_stats"][0]["checker_status_count"], 2)
 
     def test_dashboard_endpoint_includes_recent_activity(self):
         response = self.client.get(reverse("dashboard"))
@@ -159,6 +169,14 @@ class DashboardApiTests(BaseApiTestCase):
         self.assertEqual(payload["summary"]["team_count"], 2)
         self.assertEqual(payload["services"][0]["slug"], "atlas-board")
         self.assertEqual(payload["recent_activity"][0]["service"]["slug"], "atlas-board")
+        self.assertEqual(payload["submission_history"][0]["round"]["number"], 7)
+        self.assertEqual(payload["service_stats"][0]["uptime_percent"], 50)
+        self.assertEqual(payload["service_status_history"][0]["round"]["number"], 7)
+        self.assertEqual(
+            payload["service_status_history"][0]["services"][0]["status_counts"]["up"],
+            1,
+        )
+        self.assertEqual(payload["recent_rounds"][0]["attack_points"], 25)
         self.assertEqual(payload["recent_activity"][0]["submitted_by"]["username"], "blue_player")
 
     def test_service_status_endpoint_returns_team_matrix(self):
@@ -170,6 +188,37 @@ class DashboardApiTests(BaseApiTestCase):
         self.assertEqual(payload["current_round"]["number"], 7)
         self.assertEqual(payload["teams"][0]["services"][0]["service"]["slug"], "atlas-board")
         self.assertIn(payload["teams"][0]["services"][0]["status"], {"up", "mumble"})
+        self.assertEqual(payload["summary"]["checked_status_count"], 2)
+        self.assertEqual(payload["summary"]["status_counts"]["unknown"], 0)
+        self.assertEqual(payload["history"][0]["services"][0]["checked_count"], 2)
+
+
+class SeedDemoDataCommandTests(TestCase):
+    def test_reset_removes_orphan_demo_users_and_can_run_repeatedly(self):
+        User.objects.create_user(
+            username="northern_lights_captain",
+            password="old-demo-password",
+            email="orphan@example.com",
+        )
+
+        call_command("seed_demo_data", reset=True, verbosity=0)
+        call_command("seed_demo_data", reset=True, verbosity=0)
+
+        self.assertEqual(
+            User.objects.filter(username="northern_lights_captain").count(),
+            1,
+        )
+        self.assertEqual(Team.objects.count(), 4)
+        self.assertEqual(Service.objects.count(), 3)
+        self.assertEqual(Round.objects.count(), 3)
+        self.assertEqual(TeamMember.objects.count(), 12)
+        self.assertTrue(
+            TeamMember.objects.filter(
+                user__username="northern_lights_captain",
+                team__slug="northern-lights",
+                role=TeamMember.Role.CAPTAIN,
+            ).exists()
+        )
 
 
 class AuthApiTests(TestCase):
@@ -407,6 +456,8 @@ class AdminApiTests(BaseApiTestCase):
         self.assertEqual(payload["current_status_summary"]["up"], 1)
         self.assertEqual(payload["current_status_summary"]["mumble"], 1)
         self.assertIsNotNone(payload["latest_checker_report_at"])
+        self.assertEqual(payload["recent_submissions"][0]["submitting_team"]["slug"], "blue-team")
+        self.assertEqual(payload["recent_submissions"][0]["round"]["number"], 7)
 
     def test_admin_can_update_settings_and_schedule_rounds(self):
         response = self.client.post(

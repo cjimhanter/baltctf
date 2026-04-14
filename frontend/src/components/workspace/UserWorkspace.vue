@@ -63,14 +63,16 @@ const { t } = useI18n();
 <template>
   <section class="workspace">
     <article class="panel-card workspace__panel workspace__panel--session">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">
+      <div class="workspace__panel-header">
+        <div class="workspace__panel-copy">
+          <p class="workspace__panel-kicker">
             {{ hasTeam ? t("workspace.teamSession") : t("workspace.operatorSession") }}
           </p>
-          <h2 class="panel-card__title">{{ hasTeam ? session.team?.name : session.user?.username }}</h2>
+          <h2 class="workspace__panel-title">
+            {{ hasTeam ? session.team?.name : session.user?.username }}
+          </h2>
         </div>
-        <button class="button button--ghost" type="button" @click="emit('logout')">
+        <button class="button button--ghost workspace__panel-action" type="button" @click="emit('logout')">
           {{ t("workspace.logout") }}
         </button>
       </div>
@@ -110,7 +112,7 @@ const { t } = useI18n();
         </div>
       </div>
 
-      <div v-else class="empty-hint">
+      <div v-else class="workspace__empty">
         {{ t("workspace.noTeamAccount") }}
       </div>
 
@@ -180,8 +182,8 @@ const { t } = useI18n();
               <h3 class="workspace__section-title">{{ t("workspace.teamProfile") }}</h3>
             </div>
 
-            <form class="form-stack" @submit.prevent="emit('update-team-profile')">
-              <div class="field-grid">
+            <form class="workspace__form" @submit.prevent="emit('update-team-profile')">
+              <div class="workspace__fields">
                 <label class="field">
                   <span class="field__label">{{ t("guest.affiliation") }}</span>
                   <input
@@ -210,17 +212,17 @@ const { t } = useI18n();
           <article class="workspace__tool-card">
             <div class="workspace__section-head workspace__section-head--compact">
               <h3 class="workspace__section-title">{{ t("workspace.addMember") }}</h3>
-              <span class="panel-card__note">
+              <span class="workspace__panel-note">
                 {{ t("workspace.memberCounter", { current: session.members.length, max: maxTeamMembers }) }}
               </span>
             </div>
 
-            <form class="form-stack" @submit.prevent="emit('add-team-member')">
-              <div v-if="!canAddTeamMember" class="empty-hint">
+            <form class="workspace__form" @submit.prevent="emit('add-team-member')">
+              <div v-if="!canAddTeamMember" class="workspace__empty">
                 {{ t("workspace.teamLimitReached") }}
               </div>
 
-              <div class="field-grid">
+              <div class="workspace__fields">
                 <label class="field">
                   <span class="field__label">{{ t("guest.username") }}</span>
                   <input v-model="teamMemberForm.username" class="field__control" type="text" />
@@ -273,19 +275,19 @@ const { t } = useI18n();
     </article>
 
     <article class="panel-card workspace__panel workspace__panel--submit">
-      <div class="panel-card__header">
-        <div>
-          <p class="panel-card__kicker">
+      <div class="workspace__panel-header">
+        <div class="workspace__panel-copy">
+          <p class="workspace__panel-kicker">
             {{ hasTeam ? t("workspace.flagSubmission") : t("workspace.operatorMode") }}
           </p>
-          <h2 class="panel-card__title">
+          <h2 class="workspace__panel-title">
             {{ hasTeam ? t("workspace.submitCapturedFlags") : t("workspace.competitionControls") }}
           </h2>
         </div>
       </div>
 
       <template v-if="hasTeam">
-        <form class="form-stack" @submit.prevent="emit('submit-flag')">
+        <form class="workspace__form" @submit.prevent="emit('submit-flag')">
           <label class="field">
             <span class="field__label">{{ t("workspace.flagValue") }}</span>
             <input
@@ -297,17 +299,21 @@ const { t } = useI18n();
             />
           </label>
 
-          <button class="button" type="submit" :disabled="isSubmittingFlag">
+          <button
+            class="button"
+            type="submit"
+            :disabled="isSubmittingFlag || !flagForm.flag.trim()"
+          >
             {{ isSubmittingFlag ? t("guest.submitting") : t("workspace.submitFlag") }}
           </button>
         </form>
 
         <div class="workspace__section">
           <div class="workspace__section-head">
-            <h3 class="workspace__section-title">{{ t("workspace.teamActivity") }}</h3>
+            <h3 class="workspace__section-title">{{ t("workspace.submissionHistory") }}</h3>
           </div>
 
-          <div v-if="session.recent_submissions.length === 0" class="empty-hint">
+          <div v-if="session.recent_submissions.length === 0" class="workspace__empty">
             {{ t("workspace.noSubmissions") }}
           </div>
 
@@ -335,6 +341,13 @@ const { t } = useI18n();
               </p>
               <div class="workspace__activity-meta">
                 <span>{{ t("common.points", { count: activity.points_awarded }) }}</span>
+                <span>
+                  {{
+                    activity.round
+                      ? t("common.roundLabel", { number: activity.round.number })
+                      : t("common.noData")
+                  }}
+                </span>
                 <span>{{ formatDateTime(activity.submitted_at) }}</span>
               </div>
             </article>
@@ -342,7 +355,7 @@ const { t } = useI18n();
         </div>
       </template>
 
-      <div v-else class="empty-hint">
+      <div v-else class="workspace__empty">
         {{ t("workspace.flagDisabled") }}
       </div>
     </article>
