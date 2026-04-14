@@ -87,6 +87,27 @@ export function createEmptyRegistrationSettings() {
   };
 }
 
+export function createEmptyCheckerDiagnostics() {
+  return {
+    round: null,
+    active_team_count: 0,
+    active_service_count: 0,
+    expected_status_count: 0,
+    checked_status_count: 0,
+    unknown_status_count: 0,
+    issue_count: 0,
+    status_counts: {
+      up: 0,
+      mumble: 0,
+      corrupt: 0,
+      down: 0,
+      unknown: 0
+    },
+    latest_reported_at: null,
+    latest_issues: []
+  };
+}
+
 export function createEmptyAdminState() {
   return {
     settings: createEmptyRegistrationSettings(),
@@ -97,6 +118,7 @@ export function createEmptyAdminState() {
     recent_submissions: [],
     current_round: null,
     current_status_summary: {},
+    current_checker_diagnostics: createEmptyCheckerDiagnostics(),
     latest_checker_report_at: null,
     next_round_number: 1
   };

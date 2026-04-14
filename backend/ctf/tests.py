@@ -456,6 +456,18 @@ class AdminApiTests(BaseApiTestCase):
         self.assertEqual(payload["current_status_summary"]["up"], 1)
         self.assertEqual(payload["current_status_summary"]["mumble"], 1)
         self.assertIsNotNone(payload["latest_checker_report_at"])
+        diagnostics = payload["current_checker_diagnostics"]
+        self.assertEqual(diagnostics["round"]["number"], 7)
+        self.assertEqual(diagnostics["active_team_count"], 2)
+        self.assertEqual(diagnostics["active_service_count"], 1)
+        self.assertEqual(diagnostics["expected_status_count"], 2)
+        self.assertEqual(diagnostics["checked_status_count"], 2)
+        self.assertEqual(diagnostics["unknown_status_count"], 0)
+        self.assertEqual(diagnostics["issue_count"], 1)
+        self.assertEqual(diagnostics["status_counts"]["mumble"], 1)
+        self.assertEqual(diagnostics["status_counts"]["unknown"], 0)
+        self.assertEqual(diagnostics["latest_issues"][0]["status"], ServiceStatus.Status.MUMBLE)
+        self.assertEqual(diagnostics["latest_issues"][0]["team"]["slug"], "blue-team")
         self.assertEqual(payload["recent_submissions"][0]["submitting_team"]["slug"], "blue-team")
         self.assertEqual(payload["recent_submissions"][0]["round"]["number"], 7)
 
@@ -610,6 +622,24 @@ class AdminApiTests(BaseApiTestCase):
         self.assertEqual(sum(payload["checker_tick"]["status_breakdown"].values()), 2)
         self.assertEqual(ServiceStatus.objects.filter(round=self.round).count(), 2)
         self.assertIsNotNone(payload["admin_state"]["latest_checker_report_at"])
+        self.assertEqual(
+            payload["admin_state"]["current_checker_diagnostics"][
+                "expected_status_count"
+            ],
+            2,
+        )
+        self.assertEqual(
+            payload["admin_state"]["current_checker_diagnostics"][
+                "checked_status_count"
+            ],
+            2,
+        )
+        self.assertEqual(
+            payload["admin_state"]["current_checker_diagnostics"][
+                "unknown_status_count"
+            ],
+            0,
+        )
         self.assertEqual(
             sum(payload["admin_state"]["current_status_summary"].values()),
             2,

@@ -1,8 +1,10 @@
 <script setup>
+import { computed } from "vue";
+
 import SubmissionHistory from "../dashboard/SubmissionHistory.vue";
 import { useI18n } from "../../i18n";
 
-defineProps({
+const props = defineProps({
   adminState: {
     type: Object,
     required: true
@@ -65,6 +67,18 @@ const emit = defineEmits([
 ]);
 
 const { t } = useI18n();
+const checkerDiagnostics = computed(
+  () =>
+    props.adminState.current_checker_diagnostics || {
+      active_team_count: 0,
+      active_service_count: 0,
+      expected_status_count: 0,
+      checked_status_count: 0,
+      unknown_status_count: 0,
+      issue_count: 0,
+      latest_issues: []
+    }
+);
 </script>
 
 <template>
@@ -465,6 +479,86 @@ const { t } = useI18n();
             <span class="admin-console__checker-label">{{ card.label }}</span>
             <strong class="admin-console__checker-value">{{ card.value }}</strong>
           </article>
+        </div>
+
+        <div class="admin-console__checker-diagnostics">
+          <article class="admin-console__diagnostic-card">
+            <span class="admin-console__checker-label">{{ t("admin.expectedChecks") }}</span>
+            <strong class="admin-console__checker-value">
+              {{ checkerDiagnostics.expected_status_count || 0 }}
+            </strong>
+            <small class="admin-console__checker-meta">
+              {{
+                t("admin.checkerMatrixSize", {
+                  teams: checkerDiagnostics.active_team_count || 0,
+                  services: checkerDiagnostics.active_service_count || 0
+                })
+              }}
+            </small>
+          </article>
+
+          <article class="admin-console__diagnostic-card">
+            <span class="admin-console__checker-label">{{ t("admin.checkedStatuses") }}</span>
+            <strong class="admin-console__checker-value">
+              {{ checkerDiagnostics.checked_status_count || 0 }}
+            </strong>
+            <small class="admin-console__checker-meta">
+              {{
+                t("admin.checkerCoverage", {
+                  checked: checkerDiagnostics.checked_status_count || 0,
+                  expected: checkerDiagnostics.expected_status_count || 0
+                })
+              }}
+            </small>
+          </article>
+
+          <article class="admin-console__diagnostic-card">
+            <span class="admin-console__checker-label">{{ t("serviceState.unknown") }}</span>
+            <strong class="admin-console__checker-value">
+              {{ checkerDiagnostics.unknown_status_count || 0 }}
+            </strong>
+            <small class="admin-console__checker-meta">{{ t("admin.pendingChecks") }}</small>
+          </article>
+
+          <article class="admin-console__diagnostic-card">
+            <span class="admin-console__checker-label">{{ t("admin.checkerIssues") }}</span>
+            <strong class="admin-console__checker-value">
+              {{ checkerDiagnostics.issue_count || 0 }}
+            </strong>
+            <small class="admin-console__checker-meta">{{ t("admin.issueStatuses") }}</small>
+          </article>
+        </div>
+
+        <div class="admin-console__issue-list">
+          <strong class="admin-console__issue-title">{{ t("admin.latestCheckerIssues") }}</strong>
+
+          <div
+            v-if="!checkerDiagnostics.latest_issues?.length"
+            class="admin-console__empty"
+          >
+            {{ t("admin.noCheckerIssues") }}
+          </div>
+
+          <template v-else>
+            <article
+              v-for="issue in checkerDiagnostics.latest_issues"
+              :key="`${issue.team.slug}-${issue.service.slug}-${issue.reported_at}`"
+              class="admin-console__issue"
+            >
+              <div>
+                <strong>
+                  {{
+                    t("admin.checkerIssueTarget", {
+                      team: issue.team.name,
+                      service: issue.service.name
+                    })
+                  }}
+                </strong>
+                <p>{{ issue.message || t("common.noCheckerNote") }}</p>
+              </div>
+              <span class="tag tag--neutral">{{ t(`serviceState.${issue.status}`) }}</span>
+            </article>
+          </template>
         </div>
 
         <div class="admin-console__fields">

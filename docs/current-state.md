@@ -52,6 +52,7 @@
 - dashboard и scoreboard показывают расширенные attack/defense/service/round stats
 - `/services` дополнительно показывает checker timeline по раундам
 - team workspace и admin console показывают recent submission history
+- admin console показывает checker diagnostics для активного раунда: ожидаемые, полученные и unknown проверки, количество проблем и последние сообщения checker/vulnbox
 - стили организованы по `SCSS 7-1 architecture`
 - интерфейс поддерживает переключение языка `English / Русский`
 

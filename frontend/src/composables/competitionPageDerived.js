@@ -107,7 +107,10 @@ export function createCompetitionPageDerivedState(context) {
       null
   );
   const checkerStatusCards = computed(() => {
-    const summary = context.adminState.value.current_status_summary || {};
+    const summary =
+      context.adminState.value.current_checker_diagnostics?.status_counts ||
+      context.adminState.value.current_status_summary ||
+      {};
 
     return [
       { key: "up", label: context.t("serviceState.up"), value: summary.up || 0 },

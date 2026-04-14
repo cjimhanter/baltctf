@@ -564,6 +564,45 @@ export function createAdminStatePayload(overrides = {}) {
         corrupt: 0,
         down: 0
       },
+      current_checker_diagnostics: {
+        round: {
+          id: 7,
+          number: 4,
+          state: "running"
+        },
+        active_team_count: 2,
+        active_service_count: 2,
+        expected_status_count: 4,
+        checked_status_count: 4,
+        unknown_status_count: 0,
+        issue_count: 1,
+        status_counts: {
+          up: 3,
+          mumble: 1,
+          corrupt: 0,
+          down: 0,
+          unknown: 0
+        },
+        latest_reported_at: "2026-04-10T10:07:00Z",
+        latest_issues: [
+          {
+            team: {
+              id: 2,
+              name: "Amber Byte",
+              slug: "amber-byte"
+            },
+            service: {
+              id: 2,
+              name: "Signal API",
+              slug: "signal-api"
+            },
+            status: "mumble",
+            points_awarded: 5,
+            message: "High latency while reading the stored flag.",
+            reported_at: "2026-04-10T10:07:00Z"
+          }
+        ]
+      },
       latest_checker_report_at: "2026-04-10T10:07:00Z",
       next_round_number: 5
     },
@@ -643,6 +682,24 @@ export function createPageContext(overrides = {}) {
       recent_submissions: [],
       current_round: null,
       current_status_summary: {},
+      current_checker_diagnostics: {
+        round: null,
+        active_team_count: 0,
+        active_service_count: 0,
+        expected_status_count: 0,
+        checked_status_count: 0,
+        unknown_status_count: 0,
+        issue_count: 0,
+        status_counts: {
+          up: 0,
+          mumble: 0,
+          corrupt: 0,
+          down: 0,
+          unknown: 0
+        },
+        latest_reported_at: null,
+        latest_issues: []
+      },
       latest_checker_report_at: null
     }),
     session: {

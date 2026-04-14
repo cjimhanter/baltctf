@@ -28,7 +28,7 @@
 - `/scoreboard` — отдельная полная таблица результатов с service posture, per-team counts и service analytics
 - `/services` — выделенная матрица статусов сервисов и checker timeline по раундам
 - `/team` — регистрация, логин, состав команды, отправка флагов и submission history команды
-- `/admin` — admin console для staff users, включая recent submissions
+- `/admin` — admin console для staff users, включая recent submissions и checker diagnostics по активному running round
 
 ## Переключение языка
 

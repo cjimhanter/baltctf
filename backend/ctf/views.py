@@ -42,6 +42,7 @@ SERVICE_STATUS_ORDER = [
 ]
 SERVICE_STATUS_HISTORY_LIMIT = 6
 SUBMISSION_HISTORY_LIMIT = 12
+CHECKER_ISSUE_LIMIT = 6
 
 
 def _json_error(message: str, status: int = 400, **extra):
@@ -908,6 +909,79 @@ def _build_service_status_payload() -> dict:
     }
 
 
+def _build_checker_diagnostics(current_round: Round | None) -> dict:
+    active_team_count = _get_active_approved_teams().count()
+    active_service_count = Service.objects.filter(is_active=True).count()
+    expected_status_count = (
+        active_team_count * active_service_count if current_round is not None else 0
+    )
+    status_counts = _empty_counts(SERVICE_STATUS_ORDER)
+    checked_status_count = 0
+    latest_reported_at = None
+    latest_issues = []
+
+    if current_round is not None:
+        status_counts = _serialize_status_breakdown(
+            ServiceStatus.objects.filter(round=current_round)
+            .values("status")
+            .annotate(count=models.Count("id")),
+            SERVICE_STATUS_ORDER,
+        )
+        checked_status_count = sum(status_counts.values())
+        latest_reported_at = (
+            ServiceStatus.objects.filter(round=current_round)
+            .order_by("-reported_at")
+            .values_list("reported_at", flat=True)
+            .first()
+        )
+        latest_issues = list(
+            ServiceStatus.objects.filter(round=current_round)
+            .exclude(status=ServiceStatus.Status.UP)
+            .select_related("team", "service")
+            .order_by("-reported_at", "team__name", "service__name")[
+                :CHECKER_ISSUE_LIMIT
+            ]
+        )
+
+    unknown_status_count = max(expected_status_count - checked_status_count, 0)
+    status_counts_with_unknown = {
+        **status_counts,
+        "unknown": unknown_status_count,
+    }
+    issue_count = (
+        status_counts[ServiceStatus.Status.MUMBLE]
+        + status_counts[ServiceStatus.Status.CORRUPT]
+        + status_counts[ServiceStatus.Status.DOWN]
+        + unknown_status_count
+    )
+
+    return {
+        "round": _serialize_round(current_round),
+        "active_team_count": active_team_count,
+        "active_service_count": active_service_count,
+        "expected_status_count": expected_status_count,
+        "checked_status_count": checked_status_count,
+        "unknown_status_count": unknown_status_count,
+        "issue_count": issue_count,
+        "status_counts": status_counts_with_unknown,
+        "latest_reported_at": (
+            latest_reported_at.isoformat() if latest_reported_at else None
+        ),
+        "latest_issues": [
+            {
+                "team": _serialize_team(status_entry.team),
+                "service": _serialize_service(status_entry.service),
+                "status": status_entry.status,
+                "status_label": status_entry.get_status_display(),
+                "points_awarded": status_entry.points_awarded,
+                "message": status_entry.message,
+                "reported_at": status_entry.reported_at.isoformat(),
+            }
+            for status_entry in latest_issues
+        ],
+    }
+
+
 def _build_admin_state_payload() -> dict:
     settings_obj = _get_settings()
     teams = list(
@@ -971,6 +1045,7 @@ def _build_admin_state_payload() -> dict:
         ],
         "current_round": _serialize_round(_get_current_round()),
         "current_status_summary": current_status_summary,
+        "current_checker_diagnostics": _build_checker_diagnostics(current_round),
         "latest_checker_report_at": (
             latest_checker_report_at.isoformat() if latest_checker_report_at else None
         ),

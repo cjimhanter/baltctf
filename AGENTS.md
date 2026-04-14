@@ -114,6 +114,7 @@ Implemented:
 - Dashboard, scoreboard, and service-status payloads with expanded attack/defense/service/round stats.
 - Checker history/service timeline data from existing `ServiceStatus` rows.
 - Submission history for dashboard, admin state, and team workspace from existing `Submission` rows.
+- Admin checker diagnostics in `admin/state`, including expected/checked/unknown counts and latest non-UP checker messages for the running round.
 - Vue routes for dashboard, full scoreboard, service matrix, team portal, and admin console.
 - English/Russian language switch; frontend sends `Accept-Language`.
 - Vitest coverage for app/pages/composables.
@@ -207,3 +208,4 @@ Staff endpoints live under `/api/admin/...`; see `backend/ctf/urls.py` and `docs
 - 2026-04-13: Added expanded dashboard/scoreboard stats, service checker timeline history, and submission history by extending existing dashboard/scoreboard/service-status/auth/admin payloads without adding migrations or new routes.
 - 2026-04-13: Added a Vue `/scoreboard` route and first control-room UI pass inspired by the reference Attack-and-Defense-CTF-Platform frontend, without changing backend APIs.
 - 2026-04-13: Created this file after reviewing README, docs, Docker Compose, backend models/routes, frontend router/API setup, package scripts, and current project structure.
+- 2026-04-14: Added `admin/state.current_checker_diagnostics` and surfaced it in the Vue admin console so operators can see checker coverage, unknown checks, issue counts, and latest vulnbox/checker messages.

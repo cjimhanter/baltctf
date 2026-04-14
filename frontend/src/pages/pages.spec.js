@@ -251,11 +251,15 @@ describe("AdminPage", () => {
     expect(wrapper.text()).toContain("Registration");
     expect(wrapper.text()).toContain("Signal Wolves");
     expect(wrapper.text()).toContain("Submissions");
+    expect(wrapper.text()).toContain("Expected checks");
+    expect(wrapper.text()).toContain("4 of 4 recorded");
+    expect(wrapper.text()).toContain("High latency while reading the stored flag.");
 
     setLanguage("ru");
     await nextTick();
 
     expect(wrapper.text()).toContain("Админ-инструменты");
     expect(wrapper.text()).toContain("Резервирования");
+    expect(wrapper.text()).toContain("Ожидаемые проверки");
   });
 });
