@@ -18,4 +18,6 @@
 14. FAUST CTF Gameserver Documentation. URL: https://ctf-gameserver.org/ (дата обращения: 14.04.2026)
 15. ForcAD: Pure-python distributable Attack-Defence CTF platform. URL: https://github.com/pomo-mondreganto/ForcAD (дата обращения: 14.04.2026)
 16. Материалы CTFtime о соревнованиях CTF. URL: https://ctftime.org/
-17. Документация проекта `baltctf`: `README.md`, `docs/architecture.md`, `docs/api.md`, `docs/frontend.md`, `docs/runbook.md`, `docs/current-state.md`.
+17. Документация Flask. URL: https://flask.palletsprojects.com/ (дата обращения: 14.04.2026)
+18. Документация Requests. URL: https://requests.readthedocs.io/ (дата обращения: 14.04.2026)
+19. Документация проекта `baltctf`: `README.md`, `docs/architecture.md`, `docs/api.md`, `docs/frontend.md`, `docs/runbook.md`, `docs/current-state.md`.

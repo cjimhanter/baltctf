@@ -44,24 +44,93 @@ erDiagram
     Round ||--o{ ServiceStatus : records
     Flag ||--o{ Submission : accepted_for
 
+    Team {
+        int id PK
+        string name UK
+        string slug UK
+        string affiliation
+        string contact_email
+        bool is_active
+        string moderation_status
+        datetime created_at
+    }
+
+    TeamMember {
+        int id PK
+        int user_id UK
+        int team_id FK
+        string role
+        datetime created_at
+    }
+
     TeamReservation {
+        int id PK
         string name
         string slug
         string contact_email
         string captain_username
+        string token
         string status
+        datetime expires_at
     }
 
     CompetitionSettings {
+        int id PK
         bool registration_open
         bool reservation_required_for_registration
         bool auto_approve_registrations
         int round_duration_minutes
         int round_break_minutes
     }
+
+    Service {
+        int id PK
+        string name UK
+        string slug UK
+        int port
+        bool is_active
+    }
+
+    Round {
+        int id PK
+        int number UK
+        string state
+        datetime started_at
+        datetime finished_at
+    }
+
+    Flag {
+        int id PK
+        string value UK
+        int team_id FK
+        int service_id FK
+        int round_id FK
+        datetime expires_at
+    }
+
+    Submission {
+        int id PK
+        int submitting_team_id FK
+        int submitted_by_id FK
+        int flag_id FK
+        string submitted_value
+        string status
+        int points_awarded
+        datetime submitted_at
+    }
+
+    ServiceStatus {
+        int id PK
+        int team_id FK
+        int service_id FK
+        int round_id FK
+        string status
+        int points_awarded
+        datetime reported_at
+    }
 ```
 
-`TeamReservation` и `CompetitionSettings` показаны как отдельные сущности, потому что они участвуют в регистрационном и административном сценариях, но не образуют внешних ключей с игровыми таблицами. В финальной версии ER-диаграмму можно уточнить по Django-моделям: добавить ключевые поля `slug`, `moderation_status`, `state`, `status`, `points_awarded`, `submitted_at`, а также ограничения уникальности для `Flag(team, service, round)` и `ServiceStatus(team, service, round)`.
+`TeamReservation` и `CompetitionSettings` показаны как отдельные сущности, потому что они участвуют в регистрационном и административном сценариях, но не образуют внешних ключей с игровыми таблицами. На финальной схеме рядом с диаграммой следует указать ограничения уникальности: `Team.name`, `Team.slug`, `Service.name`, `Service.slug`, `Round.number`, `Flag.value`, `TeamReservation.name`, `TeamReservation.slug`, `TeamReservation.token`, а также составные ограничения `Flag(team, service, round)` и `ServiceStatus(team, service, round)`.
 
 ## Рисунок 3.1 — Поток выполнения checker tick
 
