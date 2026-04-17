@@ -195,7 +195,7 @@ Staff endpoints live under `/api/admin/...`; see `backend/ctf/urls.py` and `docs
 ## Working Rules For Future Agents
 
 - Start each task by checking `git status --short`; this repo may have user edits in progress.
-- For new feature, bug fix, refactor, or docs work, create a dedicated branch before editing. Use a short descriptive name with a type prefix, for example `feature/scoreboard-export`, `fix/flag-validation`, `refactor/competition-state`, or `docs/runbook-update`.
+- Work directly on `main`; do not create task branches unless the user explicitly asks for one.
 - Keep commit history meaningful while working: make focused commits with clear messages after coherent changes, and avoid mixing unrelated feature, bug fix, and cleanup work in the same commit.
 - Prefix commit messages by work type: use `feat:` for features, `fix:` for bug fixes, `refactor:` for refactors, and `docs:` for documentation-only changes.
 - Do not revert or overwrite unrelated user changes.
@@ -213,3 +213,4 @@ Staff endpoints live under `/api/admin/...`; see `backend/ctf/urls.py` and `docs
 - 2026-04-14: Added `admin/state.current_checker_diagnostics` and surfaced it in the Vue admin console so operators can see checker coverage, unknown checks, issue counts, and latest vulnbox/checker messages.
 - 2026-04-14: Added request-aware localization for common backend API validation/error messages when clients send `Accept-Language: ru`.
 - 2026-04-17: Synchronized README, technical docs, checker README, and diploma draft notes with the current working slice, including DB access, checker behavior, current limits, diagnostics, and verification commands.
+- 2026-04-17: Moved local work back onto `main`, deleted merged local task branches, and changed the working convention to avoid creating branches unless explicitly requested.
