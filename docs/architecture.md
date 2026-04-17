@@ -1,6 +1,6 @@
-# Architecture Draft
+# Архитектурный обзор
 
-## Main subsystems
+## Основные подсистемы
 
 ### Web platform
 - team registration
@@ -28,6 +28,7 @@
 - flag placement
 - service health checks
 - result submission to backend
+- checker diagnostics for the running round
 
 ### Current checker implementation status
 - отдельный контейнер `checker` логинится в backend под staff-учёткой
@@ -42,13 +43,14 @@
 - vulnerable web service
 - vulnerable API service
 - vulnerable storage service
+- local ports: `8081`, `8082`, `8083`
 
 ### Current vulnbox demo services
 - `atlas-board` - demo board service, в котором checker хранит флаг в post body, а leak endpoint позволяет читать чужие записи
 - `signal-api` - demo JSON API, в котором checker кладёт секрет в record, а debug export раскрывает данные без авторизации
 - `cold-storage` - demo file storage, в котором checker загружает текстовый файл, а raw endpoint позволяет читать файлы по произвольному пути
 
-## Proposed data model
+## Current data model
 
 - `Team`
 - `CompetitionSettings`
@@ -87,8 +89,8 @@
 - `POST /api/team/members/` - captain-only добавление нового участника в свою команду
 - `POST /api/team/members/<user_id>/role/` - captain-only смена роли участника
 - `POST /api/team/members/<user_id>/remove/` - captain-only удаление участника из своей команды
-- `POST /api/submit-flag/` - отправка флага с проверкой дублей, чужой команды и срока жизни
-- `GET /api/admin/state/` - staff-only snapshot для operator console
+- `POST /api/submit-flag/` - отправка флага с проверкой дублей, чужой команды, текущего раунда, срока жизни и rate limit
+- `GET /api/admin/state/` - staff-only snapshot для operator console, recent submissions и checker diagnostics
 - `POST /api/admin/settings/update/` - управление registration windows и параметрами соревнования
 - `POST /api/admin/reservations/<id>/approve|reject/` - обработка reservation requests
 - `POST /api/admin/teams/...` - базовое управление командами
@@ -104,3 +106,16 @@
 4. Teams submit captured flags through the web platform.
 5. Backend calculates the scoreboard from checker results and valid submissions.
 6. Frontend surfaces expanded stats, service timeline history, and recent submission history without requiring extra route changes.
+
+## Local data access
+
+- PostgreSQL runs as Docker Compose service `db`.
+- Default local connection for GUI tools such as TablePlus: `127.0.0.1:5432`, database `baltctf`, user `baltctf`, password `baltctf`.
+- Django admin is available at `http://localhost:8000/admin/` after seeding demo data.
+
+## Current limitations
+
+- Checker work runs synchronously inside the backend request handling path.
+- Demo vulnbox services are shared in local Docker and split data by `team_slug`; they are not isolated per team VM/container.
+- Rare Django/backend validation messages may still be English-only.
+- There is no full Docker-based e2e checker/vulnbox suite yet.

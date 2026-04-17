@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Last reviewed: 2026-04-13
+Last reviewed: 2026-04-17
 
 This file is the handoff note for future Codex/chat sessions working on this repo. Read it first, then skim the linked docs/code before making changes. Keep it current whenever a request changes project knowledge, setup, commands, architecture, or working conventions.
 
@@ -69,6 +69,7 @@ Useful URLs:
 - Admin tools: `http://localhost:5173/admin`
 - Backend API: `http://localhost:8000/api/`
 - Django admin: `http://localhost:8000/admin/`
+- PostgreSQL for TablePlus/psql: `127.0.0.1:5432`, database/user/password `baltctf`
 
 Demo accounts after seeding:
 
@@ -211,3 +212,4 @@ Staff endpoints live under `/api/admin/...`; see `backend/ctf/urls.py` and `docs
 - 2026-04-13: Created this file after reviewing README, docs, Docker Compose, backend models/routes, frontend router/API setup, package scripts, and current project structure.
 - 2026-04-14: Added `admin/state.current_checker_diagnostics` and surfaced it in the Vue admin console so operators can see checker coverage, unknown checks, issue counts, and latest vulnbox/checker messages.
 - 2026-04-14: Added request-aware localization for common backend API validation/error messages when clients send `Accept-Language: ru`.
+- 2026-04-17: Synchronized README, technical docs, checker README, and diploma draft notes with the current working slice, including DB access, checker behavior, current limits, diagnostics, and verification commands.

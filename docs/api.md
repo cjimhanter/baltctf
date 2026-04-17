@@ -25,11 +25,11 @@
 - `POST /team/members/` — добавить участника в текущую команду
 - `POST /team/members/<user_id>/role/` — сменить роль участника
 - `POST /team/members/<user_id>/remove/` — удалить участника
-- `POST /submit-flag/` — отправить найденный флаг
+- `POST /submit-flag/` — отправить найденный флаг; доступно участнику активной одобренной команды при наличии running round
 
 ## Staff admin actions
 
-- `GET /admin/state/` — срез админских данных
+- `GET /admin/state/` — срез админских данных, recent submissions и checker diagnostics
 - `POST /admin/settings/update/` — изменить registration settings и параметры тайминга
 - `POST /admin/reservations/<id>/approve/` — одобрить резервирование
 - `POST /admin/reservations/<id>/reject/` — отклонить резервирование
@@ -56,6 +56,15 @@ Authorization: Token <token>
 
 Frontend дополнительно отправляет `Accept-Language`. Backend использует `Accept-Language: ru` для частых validation/error messages auth, registration, team management, flag submission и admin workflow; английский остаётся языком по умолчанию.
 
+## Правила и лимиты
+
+- Максимальный размер команды: 6 участников, включая капитана.
+- Accepted flag даёт 25 attack points.
+- Defense points зависят от checker status: `up` — 10, `mumble` — 5, `corrupt` — 2, `down` — 0.
+- Отправка флагов ограничена 10 попытками от команды за 60 секунд.
+- `POST /submit-flag/` сохраняет rejected submissions для неизвестных, собственных, просроченных, не относящихся к текущему раунду и уже принятых флагов.
+- Checker tick работает только для текущего `running` round; при его отсутствии backend возвращает конфликтное состояние.
+
 ## Payload notes
 
 - `dashboard.summary` и `/summary/` теперь включают `attack_points_total`, `defense_points_total`, `submission_count`, `rejected_submissions_count`, `checker_status_count`, `acceptance_rate`, `checker_status_breakdown`, `current_round_status_breakdown`, `latest_submission_at` и `latest_checker_report_at`.
@@ -63,4 +72,5 @@ Frontend дополнительно отправляет `Accept-Language`. Back
 - `dashboard.recent_rounds` содержит round-level attack/defense/checker counters для последних раундов.
 - `dashboard.service_status_history` и `service-status.history` показывают checker timeline по раундам: для каждого сервиса есть counts `up/mumble/corrupt/down/unknown`, checked count, issue count, defense points и latest report timestamp.
 - `dashboard.submission_history`, `scoreboard.submission_history`, `admin/state.recent_submissions` и `auth/me.recent_submissions` используют общий submission serializer с submitting team, submitted user, target team, service, round, status, points и timestamps.
-- `admin/state.current_checker_diagnostics` показывает диагностический срез активного running round для operator console: active team/service counts, expected/checked/unknown status counts, issue count, status counts с `unknown`, latest report timestamp и последние проблемные checker results с team, service, status, message и points.
+- `admin/state.current_checker_diagnostics` показывает диагностический срез активного running round для operator console: `round`, active team/service counts, expected/checked/unknown status counts, issue count, status counts с `unknown`, latest report timestamp и последние проблемные checker results с team, service, status, message и points.
+- `checker_tick` в ответе `POST /admin/checker/tick/` содержит `round`, `created_flags`, `statuses_processed`, `status_breakdown` и `reported_at`.

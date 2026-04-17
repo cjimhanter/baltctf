@@ -47,13 +47,20 @@ Authorization: Token <token>
 
 Для `/submit-flag/` backend выполняет основные проверки честности соревнования: наличие активного раунда, членство в активной одобренной команде, ограничение частоты отправок, существование флага, запрет сдачи собственного флага, принадлежность флага текущему раунду, срок действия и отсутствие ранее принятой отправки этого же флага.
 
+Текущие числовые правила реализации:
+
+- максимальный размер команды — 6 участников;
+- accepted flag дает 25 attack points;
+- лимит отправки флагов — 10 попыток от команды за 60 секунд;
+- defense points: `up` — 10, `mumble` — 5, `corrupt` — 2, `down` — 0.
+
 ## Admin API
 
 Административные маршруты требуют токен staff-пользователя. Они используются панелью организатора и управляют состоянием соревнования.
 
 | Метод | Путь | Доступ | Назначение | Основные поля |
 | --- | --- | --- | --- | --- |
-| `GET` | `/admin/state/` | Staff | Единый срез данных для панели администратора. | Ответ: `settings`, `teams`, `reservations`, `services`, `rounds`, `recent_submissions`, `current_round`, `current_status_summary`, `next_round_number`. |
+| `GET` | `/admin/state/` | Staff | Единый срез данных для панели администратора. | Ответ: `settings`, `teams`, `reservations`, `services`, `rounds`, `recent_submissions`, `current_round`, `current_status_summary`, `current_checker_diagnostics`, `latest_checker_report_at`, `next_round_number`. |
 | `POST` | `/admin/settings/update/` | Staff | Изменение настроек соревнования. | Запрос: `registration_open`, `registration_starts_at`, `registration_ends_at`, `reservation_required_for_registration`, `auto_approve_registrations`, `round_duration_minutes`, `round_break_minutes`. |
 | `POST` | `/admin/reservations/<id>/approve/` | Staff | Одобрение заявки на резервирование. | Запрос без тела. Ответ: `reservation`, `admin_state`. |
 | `POST` | `/admin/reservations/<id>/reject/` | Staff | Отклонение заявки на резервирование. | Запрос: `note`. Ответ: `reservation`, `admin_state`. |
@@ -79,3 +86,5 @@ Authorization: Token <token>
 | `POST` | `/admin/checker/tick/` | Staff / checker token | Запуск проверки сервисов текущего `running` round. | Запрос без тела. Ответ: `checker_tick`, `admin_state`, `message`. |
 
 Ответ `checker_tick` содержит `round`, `created_flags`, `statuses_processed`, `status_breakdown` и `reported_at`. Если запущенного раунда нет, backend возвращает конфликтное состояние, а checker-контейнер остается в режиме ожидания до следующего цикла.
+
+Поле `current_checker_diagnostics` в `/admin/state/` показывает диагностический срез активного раунда: количество активных команд и сервисов, ожидаемых проверок, полученных проверок, unknown-статусов, проблемных статусов, status breakdown и последние non-UP checker messages.

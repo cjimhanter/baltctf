@@ -14,9 +14,10 @@
 - `src/App.vue` — shell приложения с BEM-блоком `app-layout`, верхней навигацией, language switch и `router-view`
 - `src/router/` — описание маршрутов
 - `src/pages/` — route-level страницы
-- `src/components/` — feature-компоненты
+- `src/components/` — feature-компоненты по доменам `access`, `workspace`, `admin`, `dashboard`, `services`, `common`
 - `src/composables/useCompetitionPage.js` — orchestration entrypoint для общего page context
 - `src/composables/competitionPage*.js` — разнесённые модули factories/state/derived/loaders/mutations/auth-team/admin логики
+- `src/api.js` — общий API-клиент с token auth и `Accept-Language`
 - `src/i18n.js` — словарь интерфейса и переключение языка
 - `src/styles/` — SCSS-архитектура, локальный vendor normalize и BEM-классы
 - `src/test/setup.js` — общий setup для `Vitest`
@@ -40,6 +41,14 @@
 - все основные UI-строки берутся из `src/i18n.js`
 - форматирование даты также зависит от выбранного языка
 - frontend отправляет выбранный язык в `Accept-Language`
+
+## API и сессия
+
+- базовый URL API задаётся через `VITE_API_BASE_URL`, значение по умолчанию — `http://localhost:8000/api`
+- token хранится в `localStorage` под ключом `baltctf_api_token`
+- `apiRequest` добавляет `Authorization: Token <token>` для защищённых запросов
+- при `401` на защищённых действиях composable очищает token и переводит пользователя в гостевое состояние
+- максимальный размер команды во frontend factory равен 6 и согласован с backend `MAX_TEAM_MEMBERS`
 
 ## Frontend tests
 

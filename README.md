@@ -4,8 +4,8 @@ Graduation project for an Attack/Defense CTF platform.
 
 ## Stack
 
-- Django + Django REST Framework
-- PostgreSQL
+- Django 5.1 + Django REST Framework
+- PostgreSQL 16
 - Vue 3 + Vite + SCSS
 - Docker Compose for local development
 - Proxmox as a target deployment/infrastructure direction
@@ -29,6 +29,8 @@ This repository now contains the first working platform slice. It provides:
 - frontend styles decomposed with the SCSS 7-1 architecture
 - backend API returns localized common validation/error messages for `Accept-Language: ru`
 - a checker service that authenticates into the backend and triggers checker ticks for running rounds
+- admin checker diagnostics for the active round
+- basic backend and frontend automated tests
 - three intentionally vulnerable demo services used by real service-specific checker modules:
   - `atlas-board`
   - `signal-api`
@@ -86,6 +88,53 @@ The Vue frontend now follows a feature-oriented structure:
    - team portal: `http://localhost:5173/team`
    - admin tools: `http://localhost:5173/admin`
 
+## Database Access
+
+PostgreSQL is exposed by Docker Compose on the host:
+
+```text
+Host: 127.0.0.1
+Port: 5432
+Database: baltctf
+User: baltctf
+Password: baltctf
+```
+
+For TablePlus, create a PostgreSQL connection with these values and use SSL mode
+`Disable` or `Prefer`.
+
+Check the actual mapped port:
+
+```bash
+docker compose port db 5432
+```
+
+Open `psql` inside the container:
+
+```bash
+docker compose exec db psql -U baltctf -d baltctf
+```
+
+Useful tables include `ctf_team`, `ctf_teammember`, `ctf_service`,
+`ctf_round`, `ctf_flag`, `ctf_submission`, `ctf_servicestatus`,
+`auth_user`, and `authtoken_token`.
+
+## Verification
+
+Backend:
+
+```bash
+docker compose run --rm backend python manage.py test
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run test:run
+npm run build
+```
+
 ## Checker And Vulnbox Environment
 
 - `CHECKER_API_BASE_URL` - backend API base URL for the checker container, default `http://backend:8000/api`
@@ -116,7 +165,7 @@ The Vue frontend now follows a feature-oriented structure:
 - `POST /api/team/members/<user_id>/role/` - captain-only role reassignment between `captain` and `player`
 - `POST /api/team/members/<user_id>/remove/` - captain-only removal of another team member
 - `POST /api/submit-flag/` - submit a captured flag
-- `GET /api/admin/state/` - staff-only operator snapshot for teams, services, and rounds
+- `GET /api/admin/state/` - staff-only operator snapshot for teams, services, rounds, recent submissions, and checker diagnostics
 - `POST /api/admin/settings/update/` - update registration windows, approval rules, and round timing
 - `POST /api/admin/reservations/<id>/approve/` - approve a team name reservation
 - `POST /api/admin/reservations/<id>/reject/` - reject a team name reservation with an optional note
@@ -132,6 +181,15 @@ The Vue frontend now follows a feature-oriented structure:
 - `POST /api/admin/rounds/<id>/finish/` - finish a running round
 - `POST /api/admin/rounds/<id>/generate-flags/` - generate missing flags for a round
 - `POST /api/admin/checker/tick/` - run a staff-only checker tick for the current running round
+
+## Current Limits
+
+- Maximum team size is 6 members.
+- Accepted flags are worth 25 attack points.
+- Defense points are based on checker status: `up` = 10, `mumble` = 5, `corrupt` = 2, `down` = 0.
+- Flag submission is rate-limited to 10 attempts per team per 60 seconds.
+- Checker work is still synchronous inside backend request handling.
+- Demo vulnbox services are shared in local Docker and are not isolated per team VM/container.
 
 ## Suggested Next Steps
 

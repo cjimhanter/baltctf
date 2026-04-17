@@ -11,6 +11,7 @@
 - регистрация команды с капитаном и несколькими участниками
 - captain-only управление составом команды
 - отправка флагов с проверкой срока жизни, дубликатов и запретом на сдачу собственного флага
+- лимит отправки флагов: не более 10 попыток от команды за 60 секунд
 - локализация частых API validation/error messages по `Accept-Language: ru`
 - staff-only API для:
   - модерации команд
@@ -18,6 +19,11 @@
   - approval / reject резервирований
   - создания и пакетного планирования раундов
   - запуска checker tick
+- admin diagnostics для running round:
+  - expected/checked/unknown checks
+  - issue count
+  - status counts, включая `unknown`
+  - последние non-UP checker messages
 - расширенные payload’ы dashboard/scoreboard/service-status:
   - attack/defense totals
   - per-team submission/check counts
@@ -31,6 +37,8 @@
 - для каждого `service.slug` есть отдельный checker module
 - checker делает реальные HTTP `put/get` операции против demo vulnbox-сервисов
 - результаты checker tick сохраняются в `ServiceStatus`
+- внешний контейнер `checker` выполняет роль планировщика: логинится в backend и вызывает `POST /api/admin/checker/tick/`
+- при отсутствии running round checker остаётся в idle-режиме
 
 ### Vulnbox demo services
 
@@ -56,6 +64,15 @@
 - admin console показывает checker diagnostics для активного раунда: ожидаемые, полученные и unknown проверки, количество проблем и последние сообщения checker/vulnbox
 - стили организованы по `SCSS 7-1 architecture`
 - интерфейс поддерживает переключение языка `English / Русский`
+- frontend хранит token в `localStorage` и отправляет `Accept-Language` в API-запросах
+
+### Тестирование и локальная эксплуатация
+
+- backend-тесты находятся в `backend/ctf/tests.py`
+- frontend-тесты находятся в `frontend/src/App.spec.js`, `frontend/src/pages/pages.spec.js` и `frontend/src/composables/useCompetitionPage.spec.js`
+- frontend build запускается через `npm run build` в каталоге `frontend`
+- PostgreSQL доступен локально на `localhost:5432` с параметрами `baltctf / baltctf / baltctf`
+- demo DB можно смотреть через TablePlus, pgAdmin, DataGrip или `docker compose exec db psql -U baltctf -d baltctf`
 
 ## Что остаётся упрощённым
 

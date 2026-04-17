@@ -1,6 +1,6 @@
 # Требования к системе
 
-Актуально на **9 апреля 2026**.
+Актуально на **17 апреля 2026**.
 
 ## Функциональные требования
 
@@ -12,6 +12,7 @@
 - отправка флагов через web-интерфейс
 - управление составом команды капитаном
 - админские сценарии для команд, сервисов, раундов и окна регистрации
+- диагностика checker-а для текущего running round в панели администратора
 - checker system для генерации, размещения и проверки флагов
 - demo vulnbox-сервисы для Attack/Defense сценария
 
@@ -28,13 +29,17 @@
 
 - backend на `Django + PostgreSQL`
 - frontend на `Vue 3 + Vite`
-- token auth и управление командами
-- scoreboard, service status, team portal и admin tools
-- service-specific checker scripts
-- три demo vulnbox-сервиса: `web`, `api`, `storage`
+- token auth, reservation flow, регистрация команд и управление составом
+- dashboard, full scoreboard, service status matrix, team portal и admin tools
+- расширенные payload'ы dashboard/scoreboard/service-status с attack/defense stats, checker history и submission history
+- локализация основных frontend-строк и частых backend validation/error messages при `Accept-Language: ru`
+- service-specific checker scripts с реальными HTTP `put/get` проверками
+- три demo vulnbox-сервиса: `atlas-board`, `signal-api`, `cold-storage`
+- базовые backend-тесты и Vitest-тесты для app/pages/composables
 
 ## Что ещё желательно довести
 
 - асинхронный запуск checker вне backend request-а
 - e2e и интеграционные тесты полного стека
-- более полная локализация backend validation messages
+- более полная локализация редких Django/backend validation messages
+- изоляция vulnbox-сервисов по командам вместо общего local demo-контура

@@ -35,3 +35,7 @@
 - Нумерацию страниц после переноса в `.docx`.
 - Список рисунков: архитектурная схема, ER-диаграмма, скриншоты интерфейса, пример checker flow. Черновые схемы добавлены в `07-figures.md`.
 - Итоговые результаты тестирования после финального прогона команд.
+
+## Актуальность черновика
+
+Технические главы синхронизированы с текущим рабочим срезом проекта на 17 апреля 2026: Django/DRF backend, Vue 3 frontend, PostgreSQL, Docker Compose, внешний checker scheduler, реальные service-specific `put/get` проверки против `atlas-board`, `signal-api`, `cold-storage`, checker diagnostics в admin console и базовые backend/frontend тесты.
