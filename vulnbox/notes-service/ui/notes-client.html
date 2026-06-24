@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Team Notes</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-2: #f9fafb;
+    --border: #e6e8ec;
+    --border-strong: #d6d9de;
+    --text: #1d2330;
+    --muted: #6b7280;
+    --muted-2: #8a91a0;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-weak: #eef3ff;
+    --green: #15a34a;
+    --green-weak: #e7f6ec;
+    --red: #dc2626;
+    --red-weak: #fdecec;
+    --amber: #b45309;
+    --radius: 10px;
+    --radius-sm: 8px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+    --shadow-md: 0 4px 12px rgba(16,24,40,.08), 0 2px 4px rgba(16,24,40,.04);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea { font-family: inherit; }
+  a { color: var(--accent); }
+
+  /* ---------- Header ---------- */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .header__inner {
+    max-width: 1120px; margin: 0 auto;
+    padding: 0 24px; height: 60px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand__mark {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(160deg, #2f6df6, #2052cc);
+    display: grid; place-items: center; color: #fff;
+    box-shadow: 0 2px 5px rgba(37,99,235,.30);
+  }
+  .brand__name { font-weight: 650; font-size: 15.5px; letter-spacing: -.01em; }
+  .brand__sub { font-size: 11.5px; color: var(--muted-2); margin-top: -2px; }
+  .header__spacer { flex: 1; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 12.5px; color: var(--muted); cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .status-pill:hover { background: #f1f3f6; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-2); flex: none; }
+  .dot--ok { background: var(--green); box-shadow: 0 0 0 3px var(--green-weak); }
+  .dot--off { background: var(--red); box-shadow: 0 0 0 3px var(--red-weak); }
+  .dot--wait { background: var(--amber); animation: pulse 1.1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+
+  .team-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 6px 5px 12px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text);
+  }
+  .team-chip .mono { color: var(--muted); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text); padding: 8px 14px; border-radius: var(--radius-sm);
+    font-size: 13.5px; font-weight: 550; transition: all .12s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-2); border-color: #c7cbd2; }
+  .btn:active { transform: translateY(.5px); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn--ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  .btn--ghost:hover { background: var(--surface-2); color: var(--text); }
+  .btn--sm { padding: 6px 10px; font-size: 12.5px; }
+  .btn--block { width: 100%; }
+  .btn--danger { color: var(--red); }
+  .btn--danger:hover { background: var(--red-weak); border-color: #f3c9c9; }
+
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.45); border-top-color: #fff;
+    animation: spin .6s linear infinite; flex: none;
+  }
+  .spinner--dark { border: 2px solid rgba(0,0,0,.18); border-top-color: var(--accent); }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  /* ---------- Inputs ---------- */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .label { display: block; font-size: 12.5px; font-weight: 600; color: #3b4252; margin-bottom: 6px; }
+  .label .hint { font-weight: 400; color: var(--muted-2); }
+  .input, .textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+    font-size: 13.5px; transition: border-color .12s, box-shadow .12s;
+  }
+  .input:focus, .textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.14);
+  }
+  .input--mono { font-family: var(--mono); font-size: 12.5px; }
+  .textarea { resize: vertical; min-height: 130px; line-height: 1.55; }
+
+  /* ---------- Layout ---------- */
+  .main { max-width: 1120px; margin: 0 auto; padding: 26px 24px 60px; }
+
+  /* Auth */
+  .auth-grid {
+    display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px;
+    align-items: center; margin-top: 26px;
+  }
+  .intro h1 { font-size: 27px; letter-spacing: -.02em; margin: 0 0 12px; line-height: 1.18; }
+  .intro p { color: var(--muted); font-size: 14.5px; max-width: 42ch; margin: 0 0 22px; }
+  .feature { display: flex; gap: 12px; margin-bottom: 15px; max-width: 44ch; }
+  .feature__ic {
+    width: 30px; height: 30px; border-radius: 8px; flex: none;
+    background: var(--accent-weak); color: var(--accent); display: grid; place-items: center;
+  }
+  .feature__t { font-weight: 600; font-size: 13.5px; }
+  .feature__d { color: var(--muted); font-size: 12.5px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  }
+  .auth-card { padding: 24px; }
+  .auth-card__title { font-size: 17px; font-weight: 650; margin: 0 0 3px; letter-spacing: -.01em; }
+  .auth-card__sub { color: var(--muted); font-size: 12.5px; margin: 0 0 20px; }
+  .divider-row { display: flex; align-items: center; gap: 10px; margin: 18px 0; color: var(--muted-2); font-size: 11.5px; }
+  .divider-row::before, .divider-row::after { content: ""; height: 1px; background: var(--border); flex: 1; }
+
+  /* Workspace */
+  .ws { display: grid; grid-template-columns: 320px 1fr; gap: 22px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+  .sidebar { overflow: hidden; }
+  .sidebar__head {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .sidebar__title { font-weight: 650; font-size: 14px; }
+  .sidebar__count { color: var(--muted-2); font-size: 12px; font-weight: 500; }
+  .sidebar__actions { padding: 12px 12px 6px; }
+  .note-list { list-style: none; margin: 0; padding: 6px; max-height: 62vh; overflow-y: auto; }
+  .note-item {
+    padding: 11px 12px; border-radius: var(--radius-sm); cursor: pointer;
+    border: 1px solid transparent; transition: background .1s, border-color .1s; margin-bottom: 2px;
+  }
+  .note-item:hover { background: var(--surface-2); }
+  .note-item--active { background: var(--accent-weak); border-color: #d4e0ff; }
+  .note-item--active:hover { background: var(--accent-weak); }
+  .note-item__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .note-item__title { font-weight: 600; font-size: 13.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note-item__id { font-family: var(--mono); font-size: 11px; color: var(--muted-2); flex: none; }
+  .note-item__date { font-size: 11.5px; color: var(--muted-2); margin-top: 2px; }
+  .note-empty { padding: 28px 16px; text-align: center; color: var(--muted-2); font-size: 12.5px; }
+
+  .reader { min-height: 420px; }
+  .reader__head { padding: 22px 26px 16px; border-bottom: 1px solid var(--border); }
+  .reader__title { font-size: 20px; font-weight: 680; letter-spacing: -.015em; margin: 0 0 9px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .meta {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
+    background: var(--surface-2); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px;
+  }
+  .meta .mono { font-family: var(--mono); color: var(--text); }
+  .reader__body {
+    padding: 22px 26px 30px; white-space: pre-wrap; word-break: break-word;
+    font-size: 14.5px; line-height: 1.65; color: #2a3140;
+  }
+  .flagish { font-family: var(--mono); background: var(--accent-weak); color: var(--accent-hover); padding: 1px 5px; border-radius: 5px; }
+
+  .placeholder { padding: 70px 30px; text-align: center; }
+  .placeholder__ic {
+    width: 54px; height: 54px; border-radius: 14px; margin: 0 auto 16px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--muted-2);
+    display: grid; place-items: center;
+  }
+  .placeholder__t { font-weight: 640; font-size: 15.5px; margin-bottom: 5px; }
+  .placeholder__d { color: var(--muted); font-size: 13px; max-width: 34ch; margin: 0 auto 18px; }
+
+  .compose__head { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .compose__title { font-weight: 650; font-size: 15.5px; }
+  .compose__body { padding: 22px 24px 24px; }
+  .compose__foot { display: flex; gap: 10px; justify-content: flex-end; padding-top: 6px; }
+
+  /* Inline alerts */
+  .alert { display: flex; gap: 9px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12.5px; margin-bottom: 14px; }
+  .alert--err { background: var(--red-weak); color: #9b1c1c; border: 1px solid #f3c9c9; }
+  .alert__x { margin-left: auto; cursor: pointer; opacity: .6; }
+  .alert__x:hover { opacity: 1; }
+
+  /* Server editor popover */
+  .pop {
+    position: absolute; top: 54px; right: 24px; width: 320px; z-index: 30;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 16px;
+  }
+  .pop__title { font-weight: 640; font-size: 13.5px; margin: 0 0 12px; }
+  .hidden { display: none !important; }
+
+  /* Toasts */
+  .toasts { position: fixed; right: 18px; bottom: 18px; z-index: 50; display: flex; flex-direction: column; gap: 9px; }
+  .toast {
+    display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-radius: var(--radius-sm);
+    background: #1f2530; color: #fff; font-size: 13px; box-shadow: var(--shadow-md);
+    animation: slidein .18s ease-out; max-width: 340px;
+  }
+  .toast--ok { background: #16331f; border-left: 3px solid var(--green); }
+  .toast--err { background: #3a1d1d; border-left: 3px solid var(--red); }
+  @keyframes slidein { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+
+  @media (max-width: 880px) {
+    .auth-grid { grid-template-columns: 1fr; gap: 26px; }
+    .intro { order: 2; }
+    .ws { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <header class="header">
+    <div class="header__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8l-5-5H5a1 1 0 0 0-1 1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+        </div>
+        <div>
+          <div class="brand__name">Team Notes</div>
+          <div class="brand__sub">Attack/Defense service client</div>
+        </div>
+      </div>
+      <div class="header__spacer"></div>
+      <button id="statusPill" class="status-pill" onclick="app.toggleServerPop()">
+        <span id="statusDot" class="dot dot--wait"></span>
+        <span id="statusText">Checking…</span>
+      </button>
+      <div id="teamArea"></div>
+    </div>
+    <div id="serverPop" class="pop hidden">
+      <p class="pop__title">Server connection</p>
+      <div class="field">
+        <label class="label" for="popServer">Service URL</label>
+        <input id="popServer" class="input input--mono" placeholder="http://localhost:8084" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn btn--sm btn--ghost" onclick="app.toggleServerPop()">Close</button>
+        <button id="popCheckBtn" class="btn btn--sm btn--primary" onclick="app.checkFromPop()">Check &amp; save</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main" id="view"></main>
+
+  <div class="toasts" id="toasts"></div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ *  Team Notes — browser client for the vulnerable A/D notes service.
+ *  Pure client-side; talks to the live service over HTTP (Bearer auth).
+ *  No external dependencies, no localStorage — state lives in memory.
+ * ------------------------------------------------------------------ */
+
+const state = {
+  server: "http://localhost:8084",
+  status: "checking",      // checking | ok | offline
+  serviceName: null,
+  token: null,
+  teamId: null,
+  teamSlug: null,
+  notes: [],
+  selectedId: null,
+  selected: null,          // full note object
+  view: "auth",            // auth | workspace
+  mainPanel: "empty",      // empty | detail | compose
+  loadingNotes: false,
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------------- API layer ---------------- */
+function baseUrl() { return state.server.replace(/\/+$/, ""); }
+
+async function api(path, { method = "GET", body = null, auth = false } = {}) {
+  const headers = {};
+  if (body) headers["Content-Type"] = "application/json";
+  if (auth && state.token) headers["Authorization"] = "Bearer " + state.token;
+  try {
+    const res = await fetch(baseUrl() + path, {
+      method, headers, body: body ? JSON.stringify(body) : undefined,
+    });
+    let data = null;
+    try { data = await res.json(); } catch (_) { data = null; }
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    return { ok: false, status: 0, data: null, networkError: true };
+  }
+}
+
+/* ---------------- Connection ---------------- */
+async function checkConnection() {
+  setStatus("checking");
+  const r = await api("/api/status");
+  if (r.ok && r.data && r.data.service) {
+    state.serviceName = r.data.service;
+    setStatus("ok");
+    return true;
+  }
+  setStatus("offline");
+  return false;
+}
+
+function setStatus(s) {
+  state.status = s;
+  const dot = $("statusDot"), txt = $("statusText");
+  dot.className = "dot " + (s === "ok" ? "dot--ok" : s === "offline" ? "dot--off" : "dot--wait");
+  txt.textContent = s === "ok"
+    ? "Connected"
+    : s === "offline" ? "Offline" : "Checking…";
+}
+
+/* ---------------- Auth ---------------- */
+async function signIn(slug, key) {
+  const r = await api("/api/session", { method: "POST", body: { team: slug, key } });
+  if (r.networkError) return { ok: false, msg: "Could not reach the server. Is notes running at " + baseUrl() + " ?" };
+  if (!r.ok) return { ok: false, msg: (r.data && r.data.error) || ("Sign-in failed (HTTP " + r.status + ")") };
+  state.token = r.data.token;
+  state.teamId = r.data.team_id;
+  state.teamSlug = slug;
+  return { ok: true };
+}
+
+function signOut() {
+  state.token = null; state.teamId = null; state.teamSlug = null;
+  state.notes = []; state.selected = null; state.selectedId = null;
+  state.view = "auth"; state.mainPanel = "empty";
+  renderTeamArea(); render();
+}
+
+/* ---------------- Notes ---------------- */
+async function loadNotes() {
+  state.loadingNotes = true; renderNotesList();
+  const r = await api("/api/notes", { auth: true });
+  state.loadingNotes = false;
+  if (r.networkError) { toast("Lost connection to the server", "err"); setStatus("offline"); state.notes = []; renderNotesList(); return; }
+  if (r.status === 401) { toast("Session expired, please sign in again", "err"); signOut(); return; }
+  if (!r.ok) { toast((r.data && r.data.error) || "Failed to load notes", "err"); return; }
+  state.notes = (r.data && r.data.notes) || [];
+  renderNotesList();
+}
+
+async function openNote(id) {
+  state.selectedId = id; state.mainPanel = "detail"; state.selected = null;
+  renderNotesList(); renderMain();
+  const r = await api("/api/notes/" + id, { auth: true });
+  if (r.networkError) { toast("Lost connection to the server", "err"); return; }
+  if (!r.ok) { toast((r.data && r.data.error) || "Failed to open note", "err"); return; }
+  state.selected = r.data.note;
+  renderMain();
+}
+
+async function createNote(title, body) {
+  const r = await api("/api/notes", { method: "POST", auth: true, body: { title, body } });
+  if (r.networkError) return { ok: false, msg: "Could not reach the server." };
+  if (!r.ok) return { ok: false, msg: (r.data && r.data.error) || ("Create failed (HTTP " + r.status + ")") };
+  return { ok: true, note: r.data.note };
+}
+
+/* ---------------- Rendering ---------------- */
+function render() {
+  if (state.view === "auth") renderAuth();
+  else renderWorkspace();
+  renderTeamArea();
+}
+
+function renderTeamArea() {
+  const el = $("teamArea");
+  if (state.view === "workspace" && state.teamSlug) {
+    el.innerHTML =
+      '<div class="team-chip">' +
+        '<span>team <strong>' + esc(state.teamSlug) + '</strong></span>' +
+        '<span class="mono">#' + state.teamId + '</span>' +
+        '<button class="btn btn--sm btn--ghost" onclick="app.signOut()" title="Sign out">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>' +
+        '</button>' +
+      '</div>';
+  } else { el.innerHTML = ""; }
+}
+
+function renderAuth() {
+  $("view").innerHTML =
+  '<div class="auth-grid">' +
+    '<div class="intro">' +
+      '<h1>Private notes for your team.</h1>' +
+      '<p>Sign in with your team credentials to create and read notes that belong to your team.</p>' +
+      feature("M12 2a5 5 0 0 1 5 5v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5z",
+        "Team-scoped", "Each note is bound to the team that created it.") +
+      feature("M4 4v16a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8l-5-5H5a1 1 0 0 0-1 1z|M14 3v5h5",
+        "Simple notes", "A title and a body — created and read over a small JSON API.") +
+      feature("M3 12h18|M3 6h18|M3 18h18",
+        "Sequential IDs", "Notes are addressed by an incrementing integer id.") +
+    '</div>' +
+    '<div class="card auth-card">' +
+      '<h2 class="auth-card__title">Sign in</h2>' +
+      '<p class="auth-card__sub">Authenticate as your team to get a session token.</p>' +
+      '<div id="authAlert"></div>' +
+      '<div class="field">' +
+        '<label class="label" for="fServer">Service URL <span class="hint">— where notes is running</span></label>' +
+        '<input id="fServer" class="input input--mono" value="' + esc(state.server) + '" />' +
+      '</div>' +
+      '<div class="field">' +
+        '<label class="label" for="fTeam">Team</label>' +
+        '<input id="fTeam" class="input" placeholder="northern-lights" autocomplete="off" />' +
+      '</div>' +
+      '<div class="field">' +
+        '<label class="label" for="fKey">Team key</label>' +
+        '<input id="fKey" class="input input--mono" type="password" placeholder="your team key" autocomplete="off" />' +
+      '</div>' +
+      '<button id="signInBtn" class="btn btn--primary btn--block" onclick="app.doSignIn()">Sign in</button>' +
+      '<div class="divider-row">first time?</div>' +
+      '<p class="muted" style="font-size:12px; margin:0;">A team is registered on its first sign-in: the key you enter becomes that team’s key. Use the same key next time.</p>' +
+    '</div>' +
+  '</div>';
+  const key = $("fKey");
+  if (key) key.addEventListener("keydown", (e) => { if (e.key === "Enter") app.doSignIn(); });
+}
+
+function feature(paths, title, desc) {
+  const d = paths.split("|").map((p) => '<path d="' + p + '"/>').join("");
+  return '<div class="feature">' +
+    '<div class="feature__ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></div>' +
+    '<div><div class="feature__t">' + title + '</div><div class="feature__d">' + desc + '</div></div>' +
+  '</div>';
+}
+
+function renderWorkspace() {
+  $("view").innerHTML =
+  '<div class="ws">' +
+    '<aside class="panel sidebar">' +
+      '<div class="sidebar__head">' +
+        '<span class="sidebar__title">Your notes</span>' +
+        '<span class="sidebar__count" id="noteCount"></span>' +
+      '</div>' +
+      '<div class="sidebar__actions">' +
+        '<button class="btn btn--primary btn--block" onclick="app.startCompose()">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> New note' +
+        '</button>' +
+      '</div>' +
+      '<ul class="note-list" id="notesList"></ul>' +
+    '</aside>' +
+    '<section class="panel reader" id="mainPanel"></section>' +
+  '</div>';
+  renderNotesList(); renderMain();
+}
+
+function renderNotesList() {
+  const ul = $("notesList"); if (!ul) return;
+  const cnt = $("noteCount");
+  if (cnt) cnt.textContent = state.loadingNotes ? "" : (state.notes.length + (state.notes.length === 1 ? " note" : " notes"));
+  if (state.loadingNotes) {
+    ul.innerHTML = '<li class="note-empty"><span class="spinner spinner--dark" style="display:inline-block"></span><div style="margin-top:8px">Loading…</div></li>';
+    return;
+  }
+  if (!state.notes.length) {
+    ul.innerHTML = '<li class="note-empty">No notes yet.<br/>Create your first one.</li>';
+    return;
+  }
+  ul.innerHTML = state.notes.map((n) =>
+    '<li class="note-item ' + (n.id === state.selectedId ? "note-item--active" : "") + '" onclick="app.openNote(' + n.id + ')">' +
+      '<div class="note-item__top">' +
+        '<span class="note-item__title">' + esc(n.title || "Untitled") + '</span>' +
+        '<span class="note-item__id">#' + n.id + '</span>' +
+      '</div>' +
+      '<div class="note-item__date">' + fmtDate(n.created_at) + '</div>' +
+    '</li>'
+  ).join("");
+}
+
+function renderMain() {
+  const el = $("mainPanel"); if (!el) return;
+
+  if (state.mainPanel === "compose") {
+    el.innerHTML =
+      '<div class="compose__head">' +
+        '<span class="compose__title">New note</span>' +
+        '<button class="btn btn--sm btn--ghost" onclick="app.cancelCompose()">Cancel</button>' +
+      '</div>' +
+      '<div class="compose__body">' +
+        '<div id="composeAlert"></div>' +
+        '<div class="field">' +
+          '<label class="label" for="cTitle">Title</label>' +
+          '<input id="cTitle" class="input" placeholder="e.g. Round 1 flag" autocomplete="off" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label class="label" for="cBody">Body</label>' +
+          '<textarea id="cBody" class="textarea" placeholder="Write your note…"></textarea>' +
+        '</div>' +
+        '<div class="compose__foot">' +
+          '<button class="btn" onclick="app.cancelCompose()">Cancel</button>' +
+          '<button id="createBtn" class="btn btn--primary" onclick="app.submitNote()">Create note</button>' +
+        '</div>' +
+      '</div>';
+    const t = $("cTitle"); if (t) t.focus();
+    return;
+  }
+
+  if (state.mainPanel === "detail") {
+    if (!state.selected) {
+      el.innerHTML = '<div class="placeholder"><span class="spinner spinner--dark" style="display:inline-block; width:22px; height:22px"></span><div class="placeholder__d" style="margin-top:16px">Opening note #' + state.selectedId + '…</div></div>';
+      return;
+    }
+    const n = state.selected;
+    el.innerHTML =
+      '<div class="reader__head">' +
+        '<h2 class="reader__title">' + esc(n.title || "Untitled") + '</h2>' +
+        '<div class="meta-row">' +
+          '<span class="meta">id <span class="mono">#' + n.id + '</span></span>' +
+          '<span class="meta">team <span class="mono">#' + n.team_id + '</span></span>' +
+          '<span class="meta">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ' +
+            fmtDate(n.created_at) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="reader__body">' + highlightFlag(n.body) + '</div>';
+    return;
+  }
+
+  // empty
+  el.innerHTML =
+    '<div class="placeholder">' +
+      '<div class="placeholder__ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8l-5-5H5a1 1 0 0 0-1 1z"/><path d="M14 3v5h5"/></svg></div>' +
+      '<div class="placeholder__t">Nothing open</div>' +
+      '<div class="placeholder__d">Select a note from the left to read it, or create a new one.</div>' +
+      '<button class="btn btn--primary" onclick="app.startCompose()">New note</button>' +
+    '</div>';
+}
+
+/* ---------------- Helpers ---------------- */
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function highlightFlag(s) {
+  return esc(s).replace(/BALTCTF\{[^}]*\}/g, (m) => '<span class="flagish">' + m + '</span>');
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function alertInto(id, msg) {
+  const el = $(id); if (!el) return;
+  el.innerHTML = '<div class="alert alert--err"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>' + esc(msg) + '</span><span class="alert__x" onclick="this.parentElement.remove()">✕</span></div>';
+}
+let toastSeq = 0;
+function toast(msg, type) {
+  const id = "t" + (++toastSeq);
+  const wrap = $("toasts");
+  const div = document.createElement("div");
+  div.className = "toast " + (type === "ok" ? "toast--ok" : type === "err" ? "toast--err" : "");
+  div.id = id;
+  const icon = type === "ok"
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>';
+  div.innerHTML = icon + '<span>' + esc(msg) + '</span>';
+  wrap.appendChild(div);
+  setTimeout(() => { const e = $(id); if (e) { e.style.transition = "opacity .25s"; e.style.opacity = "0"; setTimeout(() => e.remove(), 260); } }, 3200);
+}
+
+function setBtnLoading(btn, loading, labelHtml) {
+  if (!btn) return;
+  if (loading) { btn.dataset.label = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>' + (labelHtml || ""); }
+  else { btn.disabled = false; if (btn.dataset.label) btn.innerHTML = btn.dataset.label; }
+}
+
+/* ---------------- Public actions ---------------- */
+window.app = {
+  async doSignIn() {
+    const server = $("fServer").value.trim();
+    const slug = $("fTeam").value.trim();
+    const key = $("fKey").value;
+    $("authAlert").innerHTML = "";
+    if (!server) return alertInto("authAlert", "Enter the service URL.");
+    if (!slug) return alertInto("authAlert", "Enter your team name.");
+    if (!key) return alertInto("authAlert", "Enter your team key.");
+    state.server = server;
+    const btn = $("signInBtn"); setBtnLoading(btn, true, "Signing in…");
+    await checkConnection();
+    const res = await signIn(slug, key);
+    setBtnLoading(btn, false);
+    if (!res.ok) { alertInto("authAlert", res.msg); return; }
+    state.view = "workspace"; state.mainPanel = "empty"; state.selectedId = null; state.selected = null;
+    render();
+    toast("Signed in as " + slug, "ok");
+    loadNotes();
+  },
+  signOut() { signOut(); toast("Signed out", "ok"); },
+  openNote(id) { openNote(id); },
+  startCompose() { state.mainPanel = "compose"; state.selectedId = null; renderNotesList(); renderMain(); },
+  cancelCompose() { state.mainPanel = state.selected ? "detail" : "empty"; renderMain(); renderNotesList(); },
+  async submitNote() {
+    const title = $("cTitle").value.trim();
+    const body = $("cBody").value;
+    $("composeAlert").innerHTML = "";
+    if (!body.trim()) return alertInto("composeAlert", "The note body cannot be empty.");
+    const btn = $("createBtn"); setBtnLoading(btn, true, "Creating…");
+    const res = await createNote(title || "Untitled note", body);
+    setBtnLoading(btn, false);
+    if (!res.ok) { alertInto("composeAlert", res.msg); return; }
+    toast("Note created", "ok");
+    await loadNotes();
+    state.selected = res.note; state.selectedId = res.note.id; state.mainPanel = "detail";
+    renderNotesList(); renderMain();
+  },
+  toggleServerPop() {
+    const pop = $("serverPop");
+    if (pop.classList.contains("hidden")) { $("popServer").value = state.server; pop.classList.remove("hidden"); $("popServer").focus(); }
+    else pop.classList.add("hidden");
+  },
+  async checkFromPop() {
+    const v = $("popServer").value.trim();
+    if (v) state.server = v;
+    const btn = $("popCheckBtn"); setBtnLoading(btn, true, "Checking…");
+    const ok = await checkConnection();
+    setBtnLoading(btn, false);
+    toast(ok ? "Connected to " + state.serviceName : "Server is offline", ok ? "ok" : "err");
+    if (ok) $("serverPop").classList.add("hidden");
+    if (state.view === "auth") { const f = $("fServer"); if (f) f.value = state.server; }
+  },
+};
+
+/* ---------------- Boot ---------------- */
+render();
+checkConnection();
+</script>
+</body>
+</html>

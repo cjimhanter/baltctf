@@ -172,6 +172,26 @@ def error(status: int, message: str, **extra):
     return jsonify(payload), status
 
 
+# --- CORS для браузерного клиента ----------------------------------------------
+#
+# Разрешаем кросс-доменные запросы, чтобы веб-клиент (ui/notes-client.html) мог
+# обращаться к API из браузера. Аутентификация идёт через заголовок Authorization
+# (Bearer), а не через cookie, поэтому Access-Control-Allow-Origin: * безопасен.
+# Flask автоматически отвечает на предзапрос OPTIONS; здесь добавляются заголовки.
+
+CORS_ENABLED = _flag_env("NOTES_CORS", True)
+
+
+@app.after_request
+def add_cors_headers(response):
+    if CORS_ENABLED:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+        response.headers["Access-Control-Max-Age"] = "86400"
+    return response
+
+
 # --- Служебные маршруты --------------------------------------------------------
 
 @app.get("/")
@@ -374,6 +394,10 @@ def handle_exception(exc):
     return jsonify({"error": "internal server error", "status": 500}), 500
 
 
-if __name__ == "__main__":
+def main() -> None:
     init_db()
     app.run(host=HOST, port=PORT)
+
+
+if __name__ == "__main__":
+    main()
